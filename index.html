@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>📸 Perfil Vitória ✨ | Checkout Privado</title>
+    
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind & FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Babel & React Import Map -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.292.0?deps=react@18.2.0,react-dom@18.2.0"
+        }
+    }
+    </script>
+
+    <!-- Scripts Analíticos originais -->
+    <script type="text/javascript">
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "w4qkfaoygs");
+    </script>
+    <script>
+        !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src='https://connect.facebook.net/en_US/fbevents.js';s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script');
+    </script>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1817379038816925&ev=PageView&noscript=1"/></noscript>
+
+    <!-- Configuração do Tailwind (Checkout) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        of: {
+                            blue: '#00AFF0', darkBlue: '#009ce0', bg: '#f8fafc',
+                            text: '#242529', gray: '#8a96a3', border: '#e0e6ea'
+                        }
+                    },
+                    boxShadow: { 'up': '0 -4px 15px rgba(0, 0, 0, 0.05)' }
+                }
+            }
+        }
+    </script>
+
+    <!-- Estilos CSS (Checkout e Animações) -->
+    <style>
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes scaleUp { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .scale-up { animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .btn-pulse { animation: pulse 1.5s infinite; }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 175, 240, 0.4); }
+            70% { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(0, 175, 240, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 175, 240, 0); }
+        }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast-enter { animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .video-locked { filter: blur(14px) brightness(0.6); transition: all 0.5s ease; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        
+        /* Oculta vídeos quando não estão na tela ativa para não sobrepor áudio se der erro */
+        #checkout-view.hidden video { display: none; }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-of-text font-sans antialiased selection:bg-of-blue selection:text-white transition-colors duration-300">
+
+    <!-- ============================================== -->
+    <!-- TELA: CHECKOUT ONLYFANS (TICKET ÚNICO)         -->
+    <!-- ============================================== -->
+    <div id="checkout-view" class="w-full flex flex-col justify-center items-center relative min-h-screen">
+        <div class="w-full max-w-md bg-white min-h-screen relative shadow-2xl flex flex-col overflow-hidden text-left">
+            <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-of-border flex items-center px-4 py-3 justify-center">
+                <h1 class="font-bold text-lg tracking-tight uppercase text-of-blue flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-sm"></i> Checkout Seguro
+                </h1>
+            </header>
+
+            <main class="flex-1 overflow-y-auto pb-32">
+                <div class="relative">
+                    <img src="https://i.postimg.cc/Qxx90B1Q/download.gif" alt="Capa" class="h-32 w-full object-cover object-center bg-gray-200" fetchpriority="high" decoding="async">
+                    
+                    <div class="absolute -bottom-10 left-4">
+                        <div class="w-20 h-20 rounded-full border-4 border-white bg-gray-200 overflow-hidden relative shadow-sm">
+                            <img src="https://i.postimg.cc/BnPvV26x/IMG-0853.jpg" alt="Vitoria" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 px-4 pb-4 border-b border-of-border">
+                    <div class="flex items-center gap-1">
+                        <h2 class="text-xl font-bold text-of-text tracking-tight">Vitoria</h2>
+                        <i class="fa-solid fa-circle-check text-blue-500 text-sm"></i>
+                    </div>
+                    
+                    <div class="flex items-center gap-1 mt-0.5 mb-1">
+                        <span class="bg-of-blue/10 text-of-blue text-[11px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                             Verificada
+                        </span>
+                    </div>
+                    
+                    <p class="text-of-gray text-sm">@vitoriaaa.</p>
+                    
+                    <div class="flex gap-4 mt-2 text-sm font-semibold text-of-gray">
+                        <span><i class="fa-solid fa-image text-of-blue"></i> 250 Fotos</span>
+                        <span><i class="fa-solid fa-video text-of-blue"></i> 100 Vídeos</span>
+                    </div>
+                    
+                    <p class="mt-3 text-sm text-of-text leading-relaxed font-medium">
+                        Desbloqueie agora para ter acesso instantâneo ao meu acervo privado completo. 
+                    </p>
+
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <span class="bg-green-50 text-green-600 border border-green-200 text-xs font-semibold px-2 py-1 rounded-lg flex items-center gap-1">
+                            <i class="fa-solid fa-box-open"></i> Acesso Imediato
+                        </span>
+                        <span class="bg-blue-50 text-blue-600 border border-blue-200 text-xs font-semibold px-2 py-1 rounded-lg flex items-center gap-1">
+                            <i class="fa-solid fa-star"></i> Conteúdo Exclusivo
+                        </span>
+                    </div>
+                </div>
+
+                <div class="px-4 py-4 bg-gray-50 border-b border-of-border">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-bold text-of-text uppercase tracking-wider">Prévia do Conteúdo</h3>
+                        <span class="text-[10px] bg-red-100 text-red-600 font-bold px-2 py-1 rounded-full animate-pulse uppercase tracking-wide">Amostra Grátis</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div class="video-container relative rounded-lg overflow-hidden bg-black aspect-[3/4] group shadow-sm cursor-pointer">
+                            <video class="preview-video w-full h-full object-cover" playsinline preload="metadata">
+                                <source src="https://pub-165b12f7792f481faed1f61d81578b79.r2.dev/gravida1.mp4" type="video/mp4">
+                            </video>
+                            <div class="play-overlay absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity">
+                                <div class="w-12 h-12 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white shadow-lg">
+                                    <i class="fa-solid fa-play ml-1 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="locked-overlay hidden absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white p-2 text-center z-10 transition-opacity">
+                                <i class="fa-solid fa-lock text-3xl mb-2 text-of-blue"></i>
+                                <span class="text-xs font-bold uppercase tracking-wider mb-1 text-red-400">Tempo Esgotado</span>
+                                <span class="text-[10px] leading-tight text-gray-200">Assine para ver o vídeo completo</span>
+                            </div>
+                        </div>
+                        
+                        <div class="video-container relative rounded-lg overflow-hidden bg-black aspect-[3/4] group shadow-sm cursor-pointer">
+                            <video class="preview-video w-full h-full object-cover" playsinline preload="metadata">
+                                <source src="https://pub-165b12f7792f481faed1f61d81578b79.r2.dev/gravida2.mp4" type="video/mp4">
+                            </video>
+                            <div class="play-overlay absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity">
+                                <div class="w-12 h-12 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white shadow-lg">
+                                    <i class="fa-solid fa-play ml-1 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="locked-overlay hidden absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white p-2 text-center z-10 transition-opacity">
+                                <i class="fa-solid fa-lock text-3xl mb-2 text-of-blue"></i>
+                                <span class="text-xs font-bold uppercase tracking-wider mb-1 text-red-400">Tempo Esgotado</span>
+                                <span class="text-[10px] leading-tight text-gray-200">Assine para ver o vídeo completo</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2 relative rounded-lg overflow-hidden bg-gray-200 h-20 flex items-center justify-center bg-[url('https://i.postimg.cc/BnPvV26x/IMG-0853.jpg')] bg-cover bg-center shadow-inner">
+                        <div class="absolute inset-0 backdrop-blur-md bg-black/60"></div>
+                        <div class="relative z-10 flex items-center justify-center gap-3">
+                            <i class="fa-solid fa-unlock-keyhole text-2xl text-white"></i>
+                            <div class="flex flex-col">
+                                <span class="text-white font-black text-lg leading-none">+ 350 Mídias</span>
+                                <span class="text-gray-300 text-xs mt-1">Disponíveis após confirmação</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-4 py-5">
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3 flex items-start gap-3 shadow-sm">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-hand-holding-dollar text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-blue-800 font-bold text-sm">Garantia de Reembolso</h4>
+                            <p class="text-blue-700 text-xs mt-0.5 leading-tight">Acesso 100% garantido. Se você não gostar do conteúdo, devolvemos seu dinheiro.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-green-50 border border-green-200 rounded-xl p-3 mb-5 flex items-start gap-3 shadow-sm">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fa-solid fa-user-secret text-green-600"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-green-800 font-bold text-sm">Compra 100% Anônima</h4>
+                            <p class="text-green-700 text-xs mt-0.5 leading-tight">Não pedimos seus dados. Sigilo total garantido na sua fatura e no acesso.</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-sm font-semibold text-of-gray uppercase tracking-wider mb-3 text-center">Seu acesso VIP</h3>
+                    
+                    <!-- PACOTE ÚNICO -->
+                    <div class="flex flex-col gap-3">
+                        <div class="relative flex items-center p-5 rounded-xl border-2 border-of-blue bg-blue-50/50 shadow-md transform scale-[1.02]">
+                            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-of-blue to-of-darkBlue text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase shadow-sm flex items-center gap-1 whitespace-nowrap">
+                                <i class="fa-solid fa-crown"></i> Acesso Completo
+                            </div>
+                            <div class="flex-1 text-center mt-2">
+                                <h4 class="font-black text-xl text-of-blue mb-1">VIP 🔞</h4>
+                                <p class="text-sm text-gray-700 font-medium mb-3">Acesso vitalício a todo o acervo + atualizações.</p>
+                                <div class="inline-flex items-center justify-center gap-2 bg-white px-4 py-2 rounded-lg shadow-inner border border-blue-100">
+                                    <span class="text-gray-400 line-through text-sm font-semibold">R$ 49,90</span>
+                                    <span class="font-black text-3xl text-of-text tracking-tighter">R$ 16,99</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center justify-center gap-2 text-xs text-of-gray pb-8 pt-2">
+                    <div class="flex gap-4 mb-2">
+                        <i class="fa-brands fa-pix text-2xl text-teal-500"></i>
+                        <i class="fa-solid fa-shield-halved text-2xl text-green-500"></i>
+                    </div>
+                    <span><i class="fa-solid fa-lock"></i> Pagamento processado em ambiente seguro</span>
+                </div>
+            </main>
+
+            <!-- Rodapé CTA Fixo -->
+            <div class="absolute bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-up z-40">
+                <button onclick="processCheckout()" class="w-full bg-of-blue hover:bg-of-darkBlue active:scale-[0.98] text-white rounded-full py-4 px-4 font-black text-lg transition-all flex items-center justify-center gap-2 btn-pulse shadow-lg">
+                    <i class="fa-brands fa-pix text-xl mr-1"></i>
+                    <span id="cta-text">DESBLOQUEAR POR R$ 16,99</span>
+                </button>
+            </div>
+
+            <!-- Prova Social -->
+            <div id="social-proof" class="fixed top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-3 flex items-center gap-3 z-50 hidden max-w-[280px]">
+                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
+                    <i class="fa-solid fa-check text-lg"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-gray-800" id="sp-name">Lucas M.</p>
+                    <p class="text-[11px] text-gray-500 font-medium">acabou de desbloquear o acesso</p>
+                </div>
+            </div>
+
+            <div id="pix-modal-overlay" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="closePixModal()"></div>
+            <div id="pix-modal" class="fixed bottom-0 left-0 w-full bg-white rounded-t-3xl z-50 hidden flex-col shadow-2xl max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-center p-3">
+                    <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+                </div>
+                <div id="pix-modal-content" class="px-6 pb-8 text-center relative">
+                    <button onclick="closePixModal()" class="absolute right-4 top-0 w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-teal-100 text-teal-600 rounded-full mb-3">
+                        <i class="fa-brands fa-pix text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-1">Pagamento via PIX</h3>
+                    <p class="text-of-gray text-sm mb-6">Copie o código Pix Copia e Cola abaixo para liberar seu acesso.</p>
+                    <div class="bg-gray-50 border border-gray-200 p-4 rounded-2xl inline-block mb-6 shadow-sm">
+                        <img id="pix-qr-img" src="" alt="QR Code PIX" class="w-40 h-40 mx-auto">
+                    </div>
+                    <div class="text-left mb-2">
+                        <label class="text-xs font-bold text-of-gray uppercase tracking-wider ml-1">Pix Copia e Cola</label>
+                    </div>
+                    <div class="bg-gray-100 border border-gray-200 rounded-xl flex items-center p-1.5 mb-4 relative">
+                        <input type="text" id="pix-code" readonly value="" class="bg-transparent text-sm text-gray-600 w-full px-3 outline-none truncate font-mono">
+                        <button onclick="copyPixCode()" class="bg-of-blue text-white px-5 py-2.5 rounded-lg text-sm font-bold active:scale-95 transition-transform shadow-sm whitespace-nowrap">
+                            Copiar
+                        </button>
+                    </div>
+                    <button onclick="verifyPaymentRedirect()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-xl mb-4 transition-all flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-circle-check text-lg"></i> Já paguei! Liberar meu acesso
+                    </button>
+                    <p id="copy-msg" class="text-sm text-green-600 font-medium h-5 opacity-0 transition-opacity absolute w-full left-0 mt-[-10px]">Código copiado!</p>
+                    <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center px-2">
+                        <span class="text-of-gray font-medium">Total a pagar:</span>
+                        <span id="pix-modal-total" class="text-2xl font-black text-of-text">R$ 16,99</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="back-redirect-overlay" class="fixed inset-0 bg-black/80 z-[200] hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm flex items-center justify-center p-4">
+                <div class="bg-white rounded-[2rem] p-6 text-center max-w-sm w-full shadow-2xl scale-up relative overflow-hidden">
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500 opacity-10 rounded-full blur-2xl"></div>
+                    <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500 opacity-10 rounded-full blur-2xl"></div>
+                    <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm relative z-10">
+                         <i class="fa-solid fa-gift text-2xl animate-bounce"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-of-text uppercase mb-2 tracking-tighter relative z-10">ESPERE! NÃO VÁ!</h2>
+                    <p class="text-of-gray text-sm mb-5 leading-relaxed relative z-10">Você vai mesmo perder todo esse conteúdo? Liberamos um <strong class="text-of-blue">DESCONTO ESPECIAL</strong> para você entrar agora.</p>
+                    <div class="bg-blue-50 border-2 border-dashed border-of-blue rounded-2xl p-4 mb-5 relative z-10">
+                        <p class="text-xs text-of-blue uppercase font-bold tracking-wider mb-1">Acesso VIP Promocional</p>
+                        <div class="flex items-center justify-center gap-3">
+                            <p class="text-gray-400 line-through font-semibold text-sm">R$ 16,99</p>
+                            <p class="text-3xl font-black text-of-blue tracking-tighter">R$ 9,90</p>
+                        </div>
+                    </div>
+                    <button onclick="applyDiscountAndBuy(9.90)" class="w-full bg-of-blue hover:bg-of-darkBlue text-white font-black py-4 rounded-xl text-lg uppercase tracking-wide mb-3 btn-pulse shadow-lg relative z-10">QUERO MEU DESCONTO</button>
+                    <button onclick="showSecondBackRedirect()" class="text-of-gray text-xs uppercase underline tracking-wider font-semibold opacity-70 hover:opacity-100 transition-opacity relative z-10">Não, prefiro sair e perder tudo</button>
+                </div>
+            </div>
+
+            <div id="second-back-redirect-overlay" class="fixed inset-0 bg-black/80 z-[210] hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm flex items-center justify-center p-4">
+                <div class="bg-white rounded-[2rem] p-6 text-center max-w-sm w-full shadow-2xl scale-up relative overflow-hidden">
+                    <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm relative z-10">
+                         <i class="fa-solid fa-triangle-exclamation text-2xl animate-pulse"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-of-text uppercase mb-2 tracking-tighter relative z-10">ÚLTIMA CHANCE!</h2>
+                    <p class="text-of-gray text-sm mb-5 leading-relaxed relative z-10">Ok, eu realmente quero que você veja esse conteúdo. Última oferta: acesse tudo pelo preço de um café. É pegar ou largar!</p>
+                    <div class="bg-red-50 border-2 border-dashed border-red-500 rounded-2xl p-4 mb-5 relative z-10">
+                        <p class="text-xs text-red-500 uppercase font-bold tracking-wider mb-1">Acesso VIP Quase de Graça</p>
+                        <div class="flex items-center justify-center gap-3">
+                            <p class="text-gray-400 line-through font-semibold text-sm">R$ 16,99</p>
+                            <p class="text-3xl font-black text-red-600 tracking-tighter">R$ 4,90</p>
+                        </div>
+                    </div>
+                    <button onclick="applyDiscountAndBuy(4.90)" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-xl text-lg uppercase tracking-wide mb-3 btn-pulse shadow-lg relative z-10">ACEITAR ÚLTIMA OFERTA</button>
+                    <button onclick="closeBackRedirect()" class="text-of-gray text-xs uppercase underline tracking-wider font-semibold opacity-70 hover:opacity-100 transition-opacity relative z-10">Recusar e sair definitivamente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- SCRIPT VANILLA (CHECKOUT APP ONLY)             -->
+    <!-- ============================================== -->
+    <script>
+        const PUSHINPAY_API_URL = 'https://api.pushinpay.com.br/api';
+        const PUSHINPAY_TOKEN = '67438|CLcA0BGtDBDaCFerhZBQ8nqSgH0VwAHOoFwYMveofe5332f9';
+        
+        let currentPrice = 16.99; // Preço único inicial
+        let offerShown = false; 
+
+        // Inicialização do Checkout (chamada imediata já que removemos o React)
+        document.addEventListener('DOMContentLoaded', () => {
+            setupOneTimeVideos();
+            setTimeout(initSocialProof, 5000);
+            armBackRedirect();
+        });
+
+        function setupOneTimeVideos() {
+            const containers = document.querySelectorAll('.video-container');
+            containers.forEach(container => {
+                const video = container.querySelector('.preview-video');
+                const playOverlay = container.querySelector('.play-overlay');
+                const lockedOverlay = container.querySelector('.locked-overlay');
+                let hasPlayed = false;
+                let isLocked = false;
+                
+                container.addEventListener('click', () => {
+                    if (isLocked) {
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                        return;
+                    }
+                    if (!hasPlayed) {
+                        hasPlayed = true;
+                        playOverlay.classList.add('hidden'); 
+                        const playPromise = video.play();
+                        if (playPromise !== undefined) {
+                            playPromise.then(() => {
+                                setTimeout(() => {
+                                    video.pause();
+                                    video.classList.add('video-locked'); 
+                                    lockedOverlay.classList.remove('hidden'); 
+                                    isLocked = true;
+                                }, 3000); 
+                            }).catch(e => console.log("Autoplay evitado"));
+                        }
+                    }
+                });
+            });
+        }
+
+        function initSocialProof() {
+            const names = ['Lucas S.', 'Marcos A.', 'Felipe', 'Thiago R.', 'Matheus M.', 'Rodrigo', 'Gabriel', 'Junior', 'Pedro H.'];
+            const popup = document.getElementById('social-proof');
+            const nameEl = document.getElementById('sp-name');
+
+            setInterval(() => {
+                const randomName = names[Math.floor(Math.random() * names.length)];
+                nameEl.innerText = randomName;
+                popup.classList.remove('hidden');
+                popup.classList.add('toast-enter');
+                setTimeout(() => {
+                    popup.classList.remove('toast-enter');
+                    popup.classList.add('hidden');
+                }, 4000);
+            }, 18000); 
+        }
+
+        function initBackRedirect() {
+            for (let i = 0; i < 5; i++) {
+                window.history.pushState({ page: 'retention' }, '', window.location.href);
+            }
+            window.addEventListener('popstate', function(event) {
+                if (!offerShown) {
+                    showBackRedirect();
+                }
+            });
+        }
+
+        function armBackRedirect() {
+            if (!offerShown) {
+                initBackRedirect();
+            }
+        }
+
+        function showBackRedirect() {
+            if (offerShown) return;
+            const overlay = document.getElementById('back-redirect-overlay');
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.replace('opacity-0', 'opacity-100'), 10);
+            offerShown = true;
+            document.querySelectorAll('.preview-video').forEach(v => v.pause());
+        }
+
+        function showSecondBackRedirect() {
+            const firstOverlay = document.getElementById('back-redirect-overlay');
+            const secondOverlay = document.getElementById('second-back-redirect-overlay');
+            firstOverlay.classList.replace('opacity-100', 'opacity-0');
+            setTimeout(() => {
+                firstOverlay.classList.add('hidden');
+                secondOverlay.classList.remove('hidden');
+                setTimeout(() => secondOverlay.classList.replace('opacity-0', 'opacity-100'), 10);
+            }, 300);
+        }
+
+        function closeBackRedirect() {
+            const overlay = document.getElementById('back-redirect-overlay');
+            const overlay2 = document.getElementById('second-back-redirect-overlay');
+            overlay.classList.replace('opacity-100', 'opacity-0');
+            overlay2.classList.replace('opacity-100', 'opacity-0');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                overlay2.classList.add('hidden');
+            }, 300);
+        }
+
+        function applyDiscountAndBuy(newPrice) {
+            closeBackRedirect();
+            currentPrice = newPrice;
+            
+            // Atualiza botões e modais com o novo preço
+            const btnSpan = document.getElementById('cta-text');
+            btnSpan.innerHTML = `DESBLOQUEAR POR R$ ${currentPrice.toFixed(2).replace('.', ',')}`;
+            document.getElementById('pix-modal-total').innerText = `R$ ${currentPrice.toFixed(2).replace('.', ',')}`;
+            
+            processCheckout(); 
+        }
+
+        async function processCheckout() {
+            const btnSpan = document.getElementById('cta-text');
+            const originalText = btnSpan.innerHTML;
+            
+            try {
+                btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
+                const valueCents = Math.round(currentPrice * 100);
+
+                const response = await fetch(`${PUSHINPAY_API_URL}/pix/cashIn`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 'Accept': 'application/json',
+                        'Authorization': `Bearer ${PUSHINPAY_TOKEN}` 
+                    },
+                    body: JSON.stringify({ value: valueCents })
+                });
+
+                const data = await response.json();
+                const pixCode = data.qr_code || data.qr_code_text || data.brcode;
+
+                if (pixCode && data.id) {
+                    document.getElementById('pix-code').value = pixCode;
+                    document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(pixCode)}`;
+                    openPixModal();
+                }
+            } catch (error) {
+                alert("Erro ao processar o pagamento. Tente novamente em instantes.");
+            } finally {
+                btnSpan.innerHTML = originalText;
+            }
+        }
+
+        function verifyPaymentRedirect() {
+            // Redireciona para o verificador de taxa após clicar em "Já Paguei"
+            window.location.href = "https://verificataxaaa.netlify.app";
+        }
+
+        function openPixModal() {
+            const modal = document.getElementById('pix-modal');
+            const overlay = document.getElementById('pix-modal-overlay');
+            overlay.classList.remove('hidden');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.replace('opacity-0', 'opacity-100');
+                modal.classList.add('slide-up');
+            }, 10);
+            document.querySelectorAll('.preview-video').forEach(v => v.pause());
+        }
+
+        function closePixModal() {
+            const modal = document.getElementById('pix-modal');
+            const overlay = document.getElementById('pix-modal-overlay');
+            overlay.classList.replace('opacity-100', 'opacity-0');
+            modal.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                modal.classList.remove('slide-up');
+                modal.classList.add('hidden');
+                modal.style.transform = '';
+            }, 300);
+        }
+
+        function copyPixCode() {
+            const pixCode = document.getElementById('pix-code');
+            pixCode.select();
+            pixCode.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(pixCode.value).then(() => {
+                const msg = document.getElementById('copy-msg');
+                msg.classList.replace('opacity-0', 'opacity-100');
+                setTimeout(() => msg.classList.replace('opacity-100', 'opacity-0'), 2500);
+            });
+        }
+    </script>
+</body>
+</html>
