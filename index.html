@@ -317,7 +317,7 @@
         let currentPrice = 16.99; 
         let currentTransactionId = null; 
         let offerStep = 0; 
-        const offerCascade = [12.99, 9.99, 5.00, 1.00];
+        const offerCascade = [12.99, 9.99, 5.00, 2.99];
 
         document.addEventListener('DOMContentLoaded', () => {
             setupOneTimeVideos();
@@ -429,11 +429,11 @@
             } else if (price === 5.00) {
                 titleEl.innerText = "SÓ HOJE, AGORA!";
                 descEl.innerText = "Ok, estou basicamente pagando para você entrar. R$ 5,00 não paga nem um lanche. Libere seu acesso VIP agora.";
-            } else if (price === 1.00) {
+            } else if (price === 2.99) {
                 // Última cartada: Visualização de emergência/FOMO máximo
                 titleEl.innerText = "ÚLTIMA CHANCE ABSOLUTA!";
                 titleEl.classList.replace('text-gray-900', 'text-red-600');
-                descEl.innerText = "Essa é a sua última tela. Acesso liberado por apenas 1 REAL. Se você fechar isso, a página expira e você perde a vaga.";
+                descEl.innerText = "Essa é a sua última tela. Acesso liberado por apenas R$2,99. Se você fechar isso, a página expira e você perde a vaga.";
                 
                 boxEl.classList.replace('bg-gray-50', 'bg-red-50');
                 boxEl.classList.replace('border-gray-200', 'border-red-200');
