@@ -5,15 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>📸 Perfil Vitória ✨ | Checkout Privado</title>
     
+    <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
+    <!-- Tailwind & FontAwesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+    <!-- Scripts Analíticos originais -->
     <script type="text/javascript">
         (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -26,6 +30,7 @@
     </script>
     <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1817379038816925&ev=PageView&noscript=1"/></noscript>
 
+    <!-- Configuração do Tailwind (Checkout) -->
     <script>
         tailwind.config = {
             theme: {
@@ -34,7 +39,7 @@
                     colors: {
                         of: {
                             blue: '#00AFF0', darkBlue: '#009ce0', bg: '#f8fafc',
-                            text: '#242529', gray: '#8a96a3', border: '#e0e6ea'
+                            text: '#111827', gray: '#6b7280', border: '#e5e7eb'
                         }
                     },
                     boxShadow: { 'up': '0 -4px 15px rgba(0, 0, 0, 0.05)' }
@@ -43,16 +48,17 @@
         }
     </script>
 
+    <!-- Estilos CSS (Checkout e Animações) -->
     <style>
         ::-webkit-scrollbar { width: 0px; background: transparent; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes scaleUp { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .scale-up { animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes scaleUp { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .scale-up { animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .btn-pulse { animation: pulse 1.5s infinite; }
         @keyframes pulse {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 175, 240, 0.4); }
-            70% { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(0, 175, 240, 0); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(0, 175, 240, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 175, 240, 0); }
         }
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -60,8 +66,6 @@
         .video-locked { filter: blur(14px) brightness(0.6); transition: all 0.5s ease; }
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
-        
-        /* Oculta vídeos quando não estão na tela ativa para não sobrepor áudio se der erro */
         #checkout-view.hidden video { display: none; }
     </style>
 </head>
@@ -196,23 +200,23 @@
                     <h3 class="text-sm font-semibold text-of-gray uppercase tracking-wider mb-3 text-center">Seu acesso VIP</h3>
                     
                     <div class="flex flex-col gap-3">
-                        <div class="relative flex items-center p-5 rounded-xl border-2 border-of-blue bg-blue-50/50 shadow-md transform scale-[1.02]">
+                        <div class="relative flex items-center p-5 rounded-2xl border border-gray-200 bg-white shadow-md transform scale-[1.02]">
                             <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-of-blue to-of-darkBlue text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase shadow-sm flex items-center gap-1 whitespace-nowrap">
                                 <i class="fa-solid fa-crown"></i> Acesso Completo
                             </div>
                             <div class="flex-1 text-center mt-2">
-                                <h4 class="font-black text-xl text-of-blue mb-1">VIP 🔞</h4>
-                                <p class="text-sm text-gray-700 font-medium mb-3">Acesso vitalício a todo o acervo + atualizações.</p>
-                                <div class="inline-flex items-center justify-center gap-2 bg-white px-4 py-2 rounded-lg shadow-inner border border-blue-100">
+                                <h4 class="font-black text-xl text-of-text mb-1">VIP 🔞</h4>
+                                <p class="text-sm text-gray-500 font-medium mb-4">Acesso vitalício a todo o acervo + atualizações.</p>
+                                <div class="inline-flex items-center justify-center gap-2 bg-gray-50 px-5 py-2.5 rounded-xl border border-gray-100">
                                     <span class="text-gray-400 line-through text-sm font-semibold">R$ 49,90</span>
-                                    <span class="font-black text-3xl text-of-text tracking-tighter">R$ 16,99</span>
+                                    <span class="font-black text-3xl text-of-blue tracking-tighter">R$ 16,99</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex flex-col items-center justify-center gap-2 text-xs text-of-gray pb-8 pt-2">
+                <div class="flex flex-col items-center justify-center gap-2 text-xs text-gray-400 pb-8 pt-2">
                     <div class="flex gap-4 mb-2">
                         <i class="fa-brands fa-pix text-2xl text-teal-500"></i>
                         <i class="fa-solid fa-shield-halved text-2xl text-green-500"></i>
@@ -221,13 +225,15 @@
                 </div>
             </main>
 
+            <!-- Rodapé CTA Fixo -->
             <div class="absolute bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-up z-40">
-                <button onclick="processCheckout()" class="w-full bg-of-blue hover:bg-of-darkBlue active:scale-[0.98] text-white rounded-full py-4 px-4 font-black text-lg transition-all flex items-center justify-center gap-2 btn-pulse shadow-lg">
+                <button onclick="processCheckout()" class="w-full bg-of-blue hover:bg-of-darkBlue active:scale-[0.98] text-white rounded-2xl py-4 px-4 font-black text-lg transition-all flex items-center justify-center gap-2 btn-pulse shadow-lg">
                     <i class="fa-brands fa-pix text-xl mr-1"></i>
                     <span id="cta-text">DESBLOQUEAR POR R$ 16,99</span>
                 </button>
             </div>
 
+            <!-- Prova Social -->
             <div id="social-proof" class="fixed top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-3 flex items-center gap-3 z-50 hidden max-w-[280px]">
                 <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
                     <i class="fa-solid fa-check text-lg"></i>
@@ -238,6 +244,7 @@
                 </div>
             </div>
 
+            <!-- Modal PIX -->
             <div id="pix-modal-overlay" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="closePixModal()"></div>
             <div id="pix-modal" class="fixed bottom-0 left-0 w-full bg-white rounded-t-3xl z-50 hidden flex-col shadow-2xl max-h-[90vh] overflow-y-auto">
                 <div class="flex justify-center p-3">
@@ -247,65 +254,68 @@
                     <button onclick="closePixModal()" class="absolute right-4 top-0 w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
-                    <div class="inline-flex items-center justify-center w-12 h-12 bg-teal-100 text-teal-600 rounded-full mb-3">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-teal-50 text-teal-600 rounded-full mb-3">
                         <i class="fa-brands fa-pix text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-1">Pagamento via PIX</h3>
-                    <p class="text-of-gray text-sm mb-6">Copie o código Pix Copia e Cola abaixo para liberar seu acesso.</p>
-                    <div class="bg-gray-50 border border-gray-200 p-4 rounded-2xl inline-block mb-6 shadow-sm">
+                    <h3 class="text-xl font-bold text-gray-900 mb-1">Pagamento via PIX</h3>
+                    <p class="text-gray-500 text-sm mb-6">Copie o código Pix Copia e Cola abaixo para liberar seu acesso.</p>
+                    <div class="bg-white border border-gray-200 p-4 rounded-2xl inline-block mb-6 shadow-sm">
                         <img id="pix-qr-img" src="" alt="QR Code PIX" class="w-40 h-40 mx-auto">
                     </div>
                     <div class="text-left mb-2">
-                        <label class="text-xs font-bold text-of-gray uppercase tracking-wider ml-1">Pix Copia e Cola</label>
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Pix Copia e Cola</label>
                     </div>
-                    <div class="bg-gray-100 border border-gray-200 rounded-xl flex items-center p-1.5 mb-4 relative">
-                        <input type="text" id="pix-code" readonly value="" class="bg-transparent text-sm text-gray-600 w-full px-3 outline-none truncate font-mono">
-                        <button onclick="copyPixCode()" class="bg-of-blue text-white px-5 py-2.5 rounded-lg text-sm font-bold active:scale-95 transition-transform shadow-sm whitespace-nowrap">
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl flex items-center p-1.5 mb-4 relative">
+                        <input type="text" id="pix-code" readonly value="" class="bg-transparent text-sm text-gray-700 w-full px-3 outline-none truncate font-mono">
+                        <button onclick="copyPixCode()" class="bg-of-blue text-white px-5 py-2.5 rounded-xl text-sm font-bold active:scale-95 transition-transform shadow-sm whitespace-nowrap">
                             Copiar
                         </button>
                     </div>
-                    <button onclick="verifyPaymentRedirect()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-xl mb-4 transition-all flex items-center justify-center gap-2 shadow-sm">
-                        <i class="fa-solid fa-circle-check text-lg"></i> Já paguei! Liberar meu acesso
+                    <button onclick="verifyPaymentRedirect()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-2xl mb-4 transition-all flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-circle-check text-lg"></i> Já paguei! Liberar acesso
                     </button>
                     <p id="copy-msg" class="text-sm text-green-600 font-medium h-5 opacity-0 transition-opacity absolute w-full left-0 mt-[-10px]">Código copiado!</p>
                     <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center px-2">
-                        <span class="text-of-gray font-medium">Total a pagar:</span>
-                        <span id="pix-modal-total" class="text-2xl font-black text-of-text">R$ 16,99</span>
+                        <span class="text-gray-500 font-medium">Total a pagar:</span>
+                        <span id="pix-modal-total" class="text-2xl font-black text-gray-900">R$ 16,99</span>
                     </div>
                 </div>
             </div>
 
-            <div id="dynamic-offer-overlay" class="fixed inset-0 bg-black/90 z-[200] hidden opacity-0 transition-opacity duration-300 backdrop-blur-md flex items-center justify-center p-4">
-                <div class="bg-white rounded-[2rem] p-6 text-center max-w-sm w-full shadow-2xl scale-up relative overflow-hidden border-t-4 border-of-blue">
-                    <div class="w-16 h-16 bg-blue-50 text-of-blue rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm relative z-10">
-                         <i class="fa-solid fa-unlock-keyhole text-2xl animate-pulse"></i>
+            <!-- Modal Dinâmico de Retenção (Agressivo porém Limpo/Moderno) -->
+            <div id="dynamic-offer-overlay" class="fixed inset-0 bg-gray-900/90 z-[200] hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm flex items-center justify-center p-4">
+                <div class="bg-white rounded-[2rem] p-6 text-center max-w-sm w-full shadow-2xl scale-up relative overflow-hidden border border-gray-100">
+                    
+                    <div id="offer-icon-bg" class="w-14 h-14 bg-blue-50 text-of-blue rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm relative z-10 transition-colors duration-300">
+                         <i id="offer-icon" class="fa-solid fa-unlock-keyhole text-2xl"></i>
                     </div>
                     
-                    <h2 id="offer-title" class="text-2xl font-black text-of-text uppercase mb-2 tracking-tighter">ESPERE! NÃO VÁ!</h2>
-                    <p id="offer-desc" class="text-of-gray text-sm mb-5 leading-relaxed">Você vai mesmo sair e perder todo esse acervo? Liberamos um desconto temporário exclusivo para você.</p>
+                    <h2 id="offer-title" class="text-2xl font-black text-gray-900 uppercase mb-2 tracking-tight transition-colors duration-300">ESPERE! NÃO FECHE!</h2>
+                    <p id="offer-desc" class="text-gray-500 text-sm mb-6 leading-relaxed">Eu vi que você hesitou. Como quero muito que você veja meu conteúdo, liberei um desconto especial para você fechar agora.</p>
                     
-                    <div class="bg-blue-50 border-2 border-dashed border-of-blue rounded-2xl p-4 mb-5">
-                        <p class="text-xs text-of-blue uppercase font-bold tracking-wider mb-1">Oferta Única</p>
+                    <div id="offer-price-box" class="bg-gray-50 border border-gray-200 rounded-2xl p-5 mb-6 transition-colors duration-300 shadow-inner">
+                        <p class="text-[11px] text-gray-500 uppercase font-bold tracking-widest mb-2">Oferta Exclusiva</p>
                         <div class="flex items-center justify-center gap-3">
                             <p id="offer-old-price" class="text-gray-400 line-through font-semibold text-sm">R$ 16,99</p>
-                            <p id="offer-new-price" class="text-4xl font-black text-of-blue tracking-tighter">R$ 12,99</p>
+                            <p id="offer-new-price" class="text-4xl font-black text-of-blue tracking-tighter transition-colors duration-300">R$ 12,99</p>
                         </div>
                     </div>
                     
-                    <button id="accept-offer-btn" class="w-full bg-of-blue hover:bg-of-darkBlue text-white font-black py-4 rounded-xl text-lg uppercase tracking-wide mb-3 shadow-lg">QUERO MEU DESCONTO</button>
-                    <button onclick="triggerNextOffer()" class="text-of-gray text-xs uppercase underline tracking-wider font-semibold opacity-70 hover:opacity-100 transition-opacity p-2">Não, prefiro sair e perder tudo</button>
+                    <button id="accept-offer-btn" class="w-full bg-of-blue hover:bg-of-darkBlue text-white font-black py-4 rounded-2xl text-lg uppercase tracking-wide mb-3 shadow-lg transition-colors duration-300">QUERO MEU DESCONTO</button>
+                    <button onclick="triggerNextOffer()" class="text-gray-400 text-xs uppercase tracking-wider font-semibold hover:text-gray-600 transition-colors p-2">Não, prefiro sair e perder tudo</button>
                 </div>
             </div>
 
         </div>
     </div>
 
+    <!-- SCRIPT DE LÓGICA DO FUNIL -->
     <script>
         const PUSHINPAY_API_URL = 'https://api.pushinpay.com.br/api';
         const PUSHINPAY_TOKEN = '67438|CLcA0BGtDBDaCFerhZBQ8nqSgH0VwAHOoFwYMveofe5332f9';
         
-        let currentPrice = 16.99; // Preço único inicial
-        let currentTransactionId = null; // Guarda ID para verificação real
+        let currentPrice = 16.99; 
+        let currentTransactionId = null; 
         let offerStep = 0; 
         const offerCascade = [12.99, 9.99, 5.00, 1.00];
 
@@ -314,7 +324,7 @@
             setTimeout(initSocialProof, 5000);
             armBackRedirect();
 
-            // Bloqueio do Mini App do Telegram
+            // Interceptação Nativa no Telegram
             if (window.Telegram && window.Telegram.WebApp) {
                 Telegram.WebApp.ready();
                 if (Telegram.WebApp.BackButton) {
@@ -323,7 +333,6 @@
                         triggerNextOffer();
                     });
                 }
-                // Previne o fechamento por arraste no mobile
                 Telegram.WebApp.isClosingConfirmationEnabled = true;
             }
         });
@@ -378,7 +387,7 @@
             }, 18000); 
         }
 
-        // --- SISTEMA DE RETENÇÃO DINÂMICA ---
+        // --- SISTEMA DE RETENÇÃO DINÂMICA E AGRESSIVA ---
         function armBackRedirect() {
             for (let i = 0; i < offerCascade.length + 1; i++) {
                 window.history.pushState({ page: 'retention' }, '', window.location.href);
@@ -389,9 +398,10 @@
         }
 
         function triggerNextOffer() {
-            // Se já passamos por todos os preços, redireciona pro entregável
+            // CORREÇÃO CRÍTICA: Se ele recusar até o último, NUNCA vai pro entregável.
             if (offerStep >= offerCascade.length) {
-                window.location.href = "https://aprovadopagamentotele.netlify.app";
+                alert("Tempo esgotado. A oferta de acesso foi encerrada.");
+                window.location.reload(); // Devolve para o preço cheio inicial.
                 return;
             }
 
@@ -399,17 +409,43 @@
             const oldPrice = offerStep === 0 ? 16.99 : offerCascade[offerStep - 1];
             
             const overlay = document.getElementById('dynamic-offer-overlay');
+            const titleEl = document.getElementById('offer-title');
+            const descEl = document.getElementById('offer-desc');
+            const boxEl = document.getElementById('offer-price-box');
+            const btnEl = document.getElementById('accept-offer-btn');
+            const iconEl = document.getElementById('offer-icon');
+            const iconBgEl = document.getElementById('offer-icon-bg');
+
             document.getElementById('offer-old-price').innerText = `R$ ${oldPrice.toFixed(2).replace('.', ',')}`;
             document.getElementById('offer-new-price').innerText = `R$ ${price.toFixed(2).replace('.', ',')}`;
             
-            // Layout de urgência máxima no último passo de R$ 1,00
-            if (price === 1.00) {
-                document.getElementById('offer-title').innerText = "ÚLTIMA CHANCE!";
-                document.getElementById('offer-title').classList.replace('text-of-text', 'text-red-600');
-                document.getElementById('offer-desc').innerText = "Essa é a última oferta. Libere o acesso completo pelo preço de uma bala. Depois disso, a página expira definitivamente.";
-                document.querySelector('.border-of-blue').classList.replace('border-of-blue', 'border-red-600');
+            // Textos persuasivos dinâmicos baseados no step
+            if (price === 12.99) {
+                titleEl.innerText = "ESPERE! NÃO FECHE!";
+                descEl.innerText = "Eu vi que você hesitou. Como quero muito que você veja meu conteúdo, liberei um desconto especial para você fechar agora.";
+            } else if (price === 9.99) {
+                titleEl.innerText = "SÉRIO QUE VAI PERDER?";
+                descEl.innerText = "Menos de 10 reais para ter acesso a todo o acervo? Essa é uma daquelas chances que não voltam mais. Pegue agora!";
+            } else if (price === 5.00) {
+                titleEl.innerText = "SÓ HOJE, AGORA!";
+                descEl.innerText = "Ok, estou basicamente pagando para você entrar. R$ 5,00 não paga nem um lanche. Libere seu acesso VIP agora.";
+            } else if (price === 1.00) {
+                // Última cartada: Visualização de emergência/FOMO máximo
+                titleEl.innerText = "ÚLTIMA CHANCE ABSOLUTA!";
+                titleEl.classList.replace('text-gray-900', 'text-red-600');
+                descEl.innerText = "Essa é a sua última tela. Acesso liberado por apenas 1 REAL. Se você fechar isso, a página expira e você perde a vaga.";
+                
+                boxEl.classList.replace('bg-gray-50', 'bg-red-50');
+                boxEl.classList.replace('border-gray-200', 'border-red-200');
                 document.getElementById('offer-new-price').classList.replace('text-of-blue', 'text-red-600');
-                document.getElementById('accept-offer-btn').classList.replace('bg-of-blue', 'bg-red-600');
+                
+                btnEl.classList.replace('bg-of-blue', 'bg-red-600');
+                btnEl.classList.replace('hover:bg-of-darkBlue', 'hover:bg-red-700');
+                btnEl.innerText = "LIBERAR POR 1 REAL";
+                
+                iconBgEl.classList.replace('bg-blue-50', 'bg-red-100');
+                iconBgEl.classList.replace('text-of-blue', 'text-red-600');
+                iconEl.className = "fa-solid fa-triangle-exclamation text-2xl animate-pulse";
             }
 
             document.getElementById('accept-offer-btn').onclick = () => acceptOffer(price);
@@ -454,7 +490,7 @@
                 const pixCode = data.qr_code || data.qr_code_text || data.brcode;
 
                 if (pixCode && data.id) {
-                    currentTransactionId = data.id; // Guarda o ID gerado para checagem real
+                    currentTransactionId = data.id; 
                     document.getElementById('pix-code').value = pixCode;
                     document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(pixCode)}`;
                     openPixModal();
@@ -488,7 +524,6 @@
                 
                 const data = await response.json();
 
-                // Verifica se o pagamento foi confirmado
                 if (data.status === 'paid' || data.status === 'approved') {
                     window.location.href = "https://aprovadopagamentotele.netlify.app";
                 } else {
@@ -502,7 +537,6 @@
             }
         }
 
-        // --- CONTROLES DE MODAIS E CLIQUES ---
         function openPixModal() {
             const modal = document.getElementById('pix-modal');
             const overlay = document.getElementById('pix-modal-overlay');
@@ -526,7 +560,7 @@
                 modal.classList.add('hidden');
                 modal.style.transform = '';
                 
-                // Em vez de só fechar, força a retenção
+                // Força a exibição da próxima oferta em vez de simplesmente deixar ele sair
                 triggerNextOffer();
             }, 300);
         }
