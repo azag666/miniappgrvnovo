@@ -5,28 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>📸 Perfil Vitória ✨ | Checkout Privado</title>
     
-    <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Tailwind & FontAwesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Babel & React Import Map -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script type="importmap">
-    {
-        "imports": {
-        "react": "https://esm.sh/react@18.2.0",
-        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-        "lucide-react": "https://esm.sh/lucide-react@0.292.0?deps=react@18.2.0,react-dom@18.2.0"
-        }
-    }
-    </script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- Scripts Analíticos originais -->
     <script type="text/javascript">
         (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -39,7 +26,6 @@
     </script>
     <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1817379038816925&ev=PageView&noscript=1"/></noscript>
 
-    <!-- Configuração do Tailwind (Checkout) -->
     <script>
         tailwind.config = {
             theme: {
@@ -57,7 +43,6 @@
         }
     </script>
 
-    <!-- Estilos CSS (Checkout e Animações) -->
     <style>
         ::-webkit-scrollbar { width: 0px; background: transparent; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -83,9 +68,6 @@
 
 <body class="bg-gray-100 text-of-text font-sans antialiased selection:bg-of-blue selection:text-white transition-colors duration-300">
 
-    <!-- ============================================== -->
-    <!-- TELA: CHECKOUT ONLYFANS (TICKET ÚNICO)         -->
-    <!-- ============================================== -->
     <div id="checkout-view" class="w-full flex flex-col justify-center items-center relative min-h-screen">
         <div class="w-full max-w-md bg-white min-h-screen relative shadow-2xl flex flex-col overflow-hidden text-left">
             <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-of-border flex items-center px-4 py-3 justify-center">
@@ -213,7 +195,6 @@
 
                     <h3 class="text-sm font-semibold text-of-gray uppercase tracking-wider mb-3 text-center">Seu acesso VIP</h3>
                     
-                    <!-- PACOTE ÚNICO -->
                     <div class="flex flex-col gap-3">
                         <div class="relative flex items-center p-5 rounded-xl border-2 border-of-blue bg-blue-50/50 shadow-md transform scale-[1.02]">
                             <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-of-blue to-of-darkBlue text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase shadow-sm flex items-center gap-1 whitespace-nowrap">
@@ -240,7 +221,6 @@
                 </div>
             </main>
 
-            <!-- Rodapé CTA Fixo -->
             <div class="absolute bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-up z-40">
                 <button onclick="processCheckout()" class="w-full bg-of-blue hover:bg-of-darkBlue active:scale-[0.98] text-white rounded-full py-4 px-4 font-black text-lg transition-all flex items-center justify-center gap-2 btn-pulse shadow-lg">
                     <i class="fa-brands fa-pix text-xl mr-1"></i>
@@ -248,7 +228,6 @@
                 </button>
             </div>
 
-            <!-- Prova Social -->
             <div id="social-proof" class="fixed top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-3 flex items-center gap-3 z-50 hidden max-w-[280px]">
                 <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
                     <i class="fa-solid fa-check text-lg"></i>
@@ -296,63 +275,57 @@
                 </div>
             </div>
 
-            <div id="back-redirect-overlay" class="fixed inset-0 bg-black/80 z-[200] hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm flex items-center justify-center p-4">
-                <div class="bg-white rounded-[2rem] p-6 text-center max-w-sm w-full shadow-2xl scale-up relative overflow-hidden">
-                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500 opacity-10 rounded-full blur-2xl"></div>
-                    <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500 opacity-10 rounded-full blur-2xl"></div>
-                    <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm relative z-10">
-                         <i class="fa-solid fa-gift text-2xl animate-bounce"></i>
+            <div id="dynamic-offer-overlay" class="fixed inset-0 bg-black/90 z-[200] hidden opacity-0 transition-opacity duration-300 backdrop-blur-md flex items-center justify-center p-4">
+                <div class="bg-white rounded-[2rem] p-6 text-center max-w-sm w-full shadow-2xl scale-up relative overflow-hidden border-t-4 border-of-blue">
+                    <div class="w-16 h-16 bg-blue-50 text-of-blue rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm relative z-10">
+                         <i class="fa-solid fa-unlock-keyhole text-2xl animate-pulse"></i>
                     </div>
-                    <h2 class="text-2xl font-black text-of-text uppercase mb-2 tracking-tighter relative z-10">ESPERE! NÃO VÁ!</h2>
-                    <p class="text-of-gray text-sm mb-5 leading-relaxed relative z-10">Você vai mesmo perder todo esse conteúdo? Liberamos um <strong class="text-of-blue">DESCONTO ESPECIAL</strong> para você entrar agora.</p>
-                    <div class="bg-blue-50 border-2 border-dashed border-of-blue rounded-2xl p-4 mb-5 relative z-10">
-                        <p class="text-xs text-of-blue uppercase font-bold tracking-wider mb-1">Acesso VIP Promocional</p>
+                    
+                    <h2 id="offer-title" class="text-2xl font-black text-of-text uppercase mb-2 tracking-tighter">ESPERE! NÃO VÁ!</h2>
+                    <p id="offer-desc" class="text-of-gray text-sm mb-5 leading-relaxed">Você vai mesmo sair e perder todo esse acervo? Liberamos um desconto temporário exclusivo para você.</p>
+                    
+                    <div class="bg-blue-50 border-2 border-dashed border-of-blue rounded-2xl p-4 mb-5">
+                        <p class="text-xs text-of-blue uppercase font-bold tracking-wider mb-1">Oferta Única</p>
                         <div class="flex items-center justify-center gap-3">
-                            <p class="text-gray-400 line-through font-semibold text-sm">R$ 16,99</p>
-                            <p class="text-3xl font-black text-of-blue tracking-tighter">R$ 9,90</p>
+                            <p id="offer-old-price" class="text-gray-400 line-through font-semibold text-sm">R$ 16,99</p>
+                            <p id="offer-new-price" class="text-4xl font-black text-of-blue tracking-tighter">R$ 12,99</p>
                         </div>
                     </div>
-                    <button onclick="applyDiscountAndBuy(9.90)" class="w-full bg-of-blue hover:bg-of-darkBlue text-white font-black py-4 rounded-xl text-lg uppercase tracking-wide mb-3 btn-pulse shadow-lg relative z-10">QUERO MEU DESCONTO</button>
-                    <button onclick="showSecondBackRedirect()" class="text-of-gray text-xs uppercase underline tracking-wider font-semibold opacity-70 hover:opacity-100 transition-opacity relative z-10">Não, prefiro sair e perder tudo</button>
+                    
+                    <button id="accept-offer-btn" class="w-full bg-of-blue hover:bg-of-darkBlue text-white font-black py-4 rounded-xl text-lg uppercase tracking-wide mb-3 shadow-lg">QUERO MEU DESCONTO</button>
+                    <button onclick="triggerNextOffer()" class="text-of-gray text-xs uppercase underline tracking-wider font-semibold opacity-70 hover:opacity-100 transition-opacity p-2">Não, prefiro sair e perder tudo</button>
                 </div>
             </div>
 
-            <div id="second-back-redirect-overlay" class="fixed inset-0 bg-black/80 z-[210] hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm flex items-center justify-center p-4">
-                <div class="bg-white rounded-[2rem] p-6 text-center max-w-sm w-full shadow-2xl scale-up relative overflow-hidden">
-                    <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-sm relative z-10">
-                         <i class="fa-solid fa-triangle-exclamation text-2xl animate-pulse"></i>
-                    </div>
-                    <h2 class="text-2xl font-black text-of-text uppercase mb-2 tracking-tighter relative z-10">ÚLTIMA CHANCE!</h2>
-                    <p class="text-of-gray text-sm mb-5 leading-relaxed relative z-10">Ok, eu realmente quero que você veja esse conteúdo. Última oferta: acesse tudo pelo preço de um café. É pegar ou largar!</p>
-                    <div class="bg-red-50 border-2 border-dashed border-red-500 rounded-2xl p-4 mb-5 relative z-10">
-                        <p class="text-xs text-red-500 uppercase font-bold tracking-wider mb-1">Acesso VIP Quase de Graça</p>
-                        <div class="flex items-center justify-center gap-3">
-                            <p class="text-gray-400 line-through font-semibold text-sm">R$ 16,99</p>
-                            <p class="text-3xl font-black text-red-600 tracking-tighter">R$ 4,90</p>
-                        </div>
-                    </div>
-                    <button onclick="applyDiscountAndBuy(4.90)" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-xl text-lg uppercase tracking-wide mb-3 btn-pulse shadow-lg relative z-10">ACEITAR ÚLTIMA OFERTA</button>
-                    <button onclick="closeBackRedirect()" class="text-of-gray text-xs uppercase underline tracking-wider font-semibold opacity-70 hover:opacity-100 transition-opacity relative z-10">Recusar e sair definitivamente</button>
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- ============================================== -->
-    <!-- SCRIPT VANILLA (CHECKOUT APP ONLY)             -->
-    <!-- ============================================== -->
     <script>
         const PUSHINPAY_API_URL = 'https://api.pushinpay.com.br/api';
         const PUSHINPAY_TOKEN = '67438|CLcA0BGtDBDaCFerhZBQ8nqSgH0VwAHOoFwYMveofe5332f9';
         
         let currentPrice = 16.99; // Preço único inicial
-        let offerShown = false; 
+        let currentTransactionId = null; // Guarda ID para verificação real
+        let offerStep = 0; 
+        const offerCascade = [12.99, 9.99, 5.00, 1.00];
 
-        // Inicialização do Checkout (chamada imediata já que removemos o React)
         document.addEventListener('DOMContentLoaded', () => {
             setupOneTimeVideos();
             setTimeout(initSocialProof, 5000);
             armBackRedirect();
+
+            // Bloqueio do Mini App do Telegram
+            if (window.Telegram && window.Telegram.WebApp) {
+                Telegram.WebApp.ready();
+                if (Telegram.WebApp.BackButton) {
+                    Telegram.WebApp.BackButton.show();
+                    Telegram.WebApp.onEvent('backButtonClicked', function() {
+                        triggerNextOffer();
+                    });
+                }
+                // Previne o fechamento por arraste no mobile
+                Telegram.WebApp.isClosingConfirmationEnabled = true;
+            }
         });
 
         function setupOneTimeVideos() {
@@ -405,66 +378,61 @@
             }, 18000); 
         }
 
-        function initBackRedirect() {
-            for (let i = 0; i < 5; i++) {
+        // --- SISTEMA DE RETENÇÃO DINÂMICA ---
+        function armBackRedirect() {
+            for (let i = 0; i < offerCascade.length + 1; i++) {
                 window.history.pushState({ page: 'retention' }, '', window.location.href);
             }
             window.addEventListener('popstate', function(event) {
-                if (!offerShown) {
-                    showBackRedirect();
-                }
+                triggerNextOffer();
             });
         }
 
-        function armBackRedirect() {
-            if (!offerShown) {
-                initBackRedirect();
+        function triggerNextOffer() {
+            // Se já passamos por todos os preços, redireciona pro entregável
+            if (offerStep >= offerCascade.length) {
+                window.location.href = "https://aprovadopagamentotele.netlify.app";
+                return;
             }
-        }
 
-        function showBackRedirect() {
-            if (offerShown) return;
-            const overlay = document.getElementById('back-redirect-overlay');
+            const price = offerCascade[offerStep];
+            const oldPrice = offerStep === 0 ? 16.99 : offerCascade[offerStep - 1];
+            
+            const overlay = document.getElementById('dynamic-offer-overlay');
+            document.getElementById('offer-old-price').innerText = `R$ ${oldPrice.toFixed(2).replace('.', ',')}`;
+            document.getElementById('offer-new-price').innerText = `R$ ${price.toFixed(2).replace('.', ',')}`;
+            
+            // Layout de urgência máxima no último passo de R$ 1,00
+            if (price === 1.00) {
+                document.getElementById('offer-title').innerText = "ÚLTIMA CHANCE!";
+                document.getElementById('offer-title').classList.replace('text-of-text', 'text-red-600');
+                document.getElementById('offer-desc').innerText = "Essa é a última oferta. Libere o acesso completo pelo preço de uma bala. Depois disso, a página expira definitivamente.";
+                document.querySelector('.border-of-blue').classList.replace('border-of-blue', 'border-red-600');
+                document.getElementById('offer-new-price').classList.replace('text-of-blue', 'text-red-600');
+                document.getElementById('accept-offer-btn').classList.replace('bg-of-blue', 'bg-red-600');
+            }
+
+            document.getElementById('accept-offer-btn').onclick = () => acceptOffer(price);
+
             overlay.classList.remove('hidden');
             setTimeout(() => overlay.classList.replace('opacity-0', 'opacity-100'), 10);
-            offerShown = true;
             document.querySelectorAll('.preview-video').forEach(v => v.pause());
-        }
-
-        function showSecondBackRedirect() {
-            const firstOverlay = document.getElementById('back-redirect-overlay');
-            const secondOverlay = document.getElementById('second-back-redirect-overlay');
-            firstOverlay.classList.replace('opacity-100', 'opacity-0');
-            setTimeout(() => {
-                firstOverlay.classList.add('hidden');
-                secondOverlay.classList.remove('hidden');
-                setTimeout(() => secondOverlay.classList.replace('opacity-0', 'opacity-100'), 10);
-            }, 300);
-        }
-
-        function closeBackRedirect() {
-            const overlay = document.getElementById('back-redirect-overlay');
-            const overlay2 = document.getElementById('second-back-redirect-overlay');
-            overlay.classList.replace('opacity-100', 'opacity-0');
-            overlay2.classList.replace('opacity-100', 'opacity-0');
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-                overlay2.classList.add('hidden');
-            }, 300);
-        }
-
-        function applyDiscountAndBuy(newPrice) {
-            closeBackRedirect();
-            currentPrice = newPrice;
             
-            // Atualiza botões e modais com o novo preço
-            const btnSpan = document.getElementById('cta-text');
-            btnSpan.innerHTML = `DESBLOQUEAR POR R$ ${currentPrice.toFixed(2).replace('.', ',')}`;
+            offerStep++;
+        }
+
+        function acceptOffer(newPrice) {
+            document.getElementById('dynamic-offer-overlay').classList.replace('opacity-100', 'opacity-0');
+            setTimeout(() => document.getElementById('dynamic-offer-overlay').classList.add('hidden'), 300);
+            
+            currentPrice = newPrice;
+            document.getElementById('cta-text').innerHTML = `DESBLOQUEAR POR R$ ${currentPrice.toFixed(2).replace('.', ',')}`;
             document.getElementById('pix-modal-total').innerText = `R$ ${currentPrice.toFixed(2).replace('.', ',')}`;
             
             processCheckout(); 
         }
 
+        // --- INTEGRAÇÃO PUSHINPAY ---
         async function processCheckout() {
             const btnSpan = document.getElementById('cta-text');
             const originalText = btnSpan.innerHTML;
@@ -486,6 +454,7 @@
                 const pixCode = data.qr_code || data.qr_code_text || data.brcode;
 
                 if (pixCode && data.id) {
+                    currentTransactionId = data.id; // Guarda o ID gerado para checagem real
                     document.getElementById('pix-code').value = pixCode;
                     document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(pixCode)}`;
                     openPixModal();
@@ -497,11 +466,43 @@
             }
         }
 
-        function verifyPaymentRedirect() {
-            // Redireciona para o verificador de taxa após clicar em "Já Paguei"
-            window.location.href = "https://aprovadopagamentotele.netlify.app";
+        async function verifyPaymentRedirect() {
+            if (!currentTransactionId) {
+                alert("Nenhum PIX foi gerado ainda.");
+                return;
+            }
+
+            const btn = document.querySelector('button[onclick="verifyPaymentRedirect()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i> Verificando Pagamento...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`${PUSHINPAY_API_URL}/transactions/${currentTransactionId}`, {
+                    method: 'GET',
+                    headers: { 
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${PUSHINPAY_TOKEN}` 
+                    }
+                });
+                
+                const data = await response.json();
+
+                // Verifica se o pagamento foi confirmado
+                if (data.status === 'paid' || data.status === 'approved') {
+                    window.location.href = "https://aprovadopagamentotele.netlify.app";
+                } else {
+                    alert("Ainda não identificamos o seu pagamento. O PIX pode levar alguns segundos para ser processado. Tente novamente em instantes!");
+                }
+            } catch (error) {
+                alert("Erro ao conectar com o banco. Se você já pagou, aguarde alguns segundos e tente novamente.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
 
+        // --- CONTROLES DE MODAIS E CLIQUES ---
         function openPixModal() {
             const modal = document.getElementById('pix-modal');
             const overlay = document.getElementById('pix-modal-overlay');
@@ -524,6 +525,9 @@
                 modal.classList.remove('slide-up');
                 modal.classList.add('hidden');
                 modal.style.transform = '';
+                
+                // Em vez de só fechar, força a retenção
+                triggerNextOffer();
             }, 300);
         }
 
