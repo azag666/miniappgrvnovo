@@ -5,19 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>📸 Perfil Vitória ✨ | Checkout Privado</title>
     
-    <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Tailwind & FontAwesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- Scripts Analíticos originais -->
     <script type="text/javascript">
         (function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -30,7 +26,6 @@
     </script>
     <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1817379038816925&ev=PageView&noscript=1"/></noscript>
 
-    <!-- Configuração do Tailwind (Checkout) -->
     <script>
         tailwind.config = {
             theme: {
@@ -48,7 +43,6 @@
         }
     </script>
 
-    <!-- Estilos CSS (Checkout e Animações) -->
     <style>
         ::-webkit-scrollbar { width: 0px; background: transparent; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -225,7 +219,6 @@
                 </div>
             </main>
 
-            <!-- Rodapé CTA Fixo -->
             <div class="absolute bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-up z-40">
                 <button onclick="processCheckout()" class="w-full bg-of-blue hover:bg-of-darkBlue active:scale-[0.98] text-white rounded-2xl py-4 px-4 font-black text-lg transition-all flex items-center justify-center gap-2 btn-pulse shadow-lg">
                     <i class="fa-brands fa-pix text-xl mr-1"></i>
@@ -233,7 +226,6 @@
                 </button>
             </div>
 
-            <!-- Prova Social -->
             <div id="social-proof" class="fixed top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-3 flex items-center gap-3 z-50 hidden max-w-[280px]">
                 <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
                     <i class="fa-solid fa-check text-lg"></i>
@@ -244,7 +236,6 @@
                 </div>
             </div>
 
-            <!-- Modal PIX -->
             <div id="pix-modal-overlay" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm" onclick="closePixModal()"></div>
             <div id="pix-modal" class="fixed bottom-0 left-0 w-full bg-white rounded-t-3xl z-50 hidden flex-col shadow-2xl max-h-[90vh] overflow-y-auto">
                 <div class="flex justify-center p-3">
@@ -282,12 +273,15 @@
                 </div>
             </div>
 
-            <!-- Modal Dinâmico de Retenção (Agressivo porém Limpo/Moderno) -->
             <div id="dynamic-offer-overlay" class="fixed inset-0 bg-gray-900/90 z-[200] hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm flex items-center justify-center p-4">
                 <div class="bg-white rounded-[2rem] p-6 text-center max-w-sm w-full shadow-2xl scale-up relative overflow-hidden border border-gray-100">
                     
                     <div id="offer-icon-bg" class="w-14 h-14 bg-blue-50 text-of-blue rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm relative z-10 transition-colors duration-300">
                          <i id="offer-icon" class="fa-solid fa-unlock-keyhole text-2xl"></i>
+                    </div>
+                    
+                    <div id="offer-gif-container" class="w-24 h-24 mx-auto mb-4 overflow-hidden rounded-2xl shadow-sm border border-gray-100 hidden transition-all duration-300">
+                        <img id="offer-gif" src="" alt="Oferta Especial" class="w-full h-full object-cover">
                     </div>
                     
                     <h2 id="offer-title" class="text-2xl font-black text-gray-900 uppercase mb-2 tracking-tight transition-colors duration-300">ESPERE! NÃO FECHE!</h2>
@@ -309,7 +303,6 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE LÓGICA DO FUNIL -->
     <script>
         const PUSHINPAY_API_URL = 'https://api.pushinpay.com.br/api';
         const PUSHINPAY_TOKEN = '67438|CLcA0BGtDBDaCFerhZBQ8nqSgH0VwAHOoFwYMveofe5332f9';
@@ -415,22 +408,41 @@
             const btnEl = document.getElementById('accept-offer-btn');
             const iconEl = document.getElementById('offer-icon');
             const iconBgEl = document.getElementById('offer-icon-bg');
+            
+            // Pegando os novos elementos do GIF
+            const gifContainer = document.getElementById('offer-gif-container');
+            const gifEl = document.getElementById('offer-gif');
 
             document.getElementById('offer-old-price').innerText = `R$ ${oldPrice.toFixed(2).replace('.', ',')}`;
             document.getElementById('offer-new-price').innerText = `R$ ${price.toFixed(2).replace('.', ',')}`;
             
-            // Textos persuasivos dinâmicos baseados no step
+            // Lógica para alternar entre Ícone e GIF
+            if (price >= 5.00) {
+                iconBgEl.classList.add('hidden');
+                gifContainer.classList.remove('hidden');
+            }
+
+            // Textos persuasivos dinâmicos e GIFs baseados no step
             if (price === 12.99) {
                 titleEl.innerText = "ESPERE! NÃO FECHE!";
                 descEl.innerText = "Eu vi que você hesitou. Como quero muito que você veja meu conteúdo, liberei um desconto especial para você fechar agora.";
+                gifEl.src = "https://i.postimg.cc/rmgdvC1N/download-(1).gif";
+                
             } else if (price === 9.99) {
                 titleEl.innerText = "SÉRIO QUE VAI PERDER?";
                 descEl.innerText = "Menos de 10 reais para ter acesso a todo o acervo? Essa é uma daquelas chances que não voltam mais. Pegue agora!";
+                gifEl.src = "https://i.postimg.cc/cLQLpBZm/download-(2).gif";
+                
             } else if (price === 5.00) {
                 titleEl.innerText = "SÓ HOJE, AGORA!";
                 descEl.innerText = "Ok, estou basicamente pagando para você entrar. R$ 5,00 não paga nem um lanche. Libere seu acesso VIP agora.";
+                gifEl.src = "https://i.postimg.cc/vBSYrPLb/download.gif";
+                
             } else if (price === 2.99) {
-                // Última cartada: Visualização de emergência/FOMO máximo
+                // Última cartada: Volta para o ícone para visualização de emergência/FOMO máximo
+                gifContainer.classList.add('hidden');
+                iconBgEl.classList.remove('hidden');
+                
                 titleEl.innerText = "ÚLTIMA CHANCE ABSOLUTA!";
                 titleEl.classList.replace('text-gray-900', 'text-red-600');
                 descEl.innerText = "Essa é a sua última tela. Acesso liberado por apenas R$2,99. Se você fechar isso, a página expira e você perde a vaga.";
