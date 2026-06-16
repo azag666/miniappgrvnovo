@@ -310,7 +310,7 @@
         let currentPrice = 16.99; 
         let currentTransactionId = null; 
         let offerStep = 0; 
-        const offerCascade = [12.99, 9.99, 5.00, 2.99];
+        const offerCascade = [12.99, 9.99, 7.99, 4.99];
 
         document.addEventListener('DOMContentLoaded', () => {
             setupOneTimeVideos();
@@ -433,19 +433,19 @@
                 descEl.innerText = "Menos de 10 reais para ter acesso a todo o acervo? Essa é uma daquelas chances que não voltam mais. Pegue agora!";
                 gifEl.src = "https://i.postimg.cc/cLQLpBZm/download-(2).gif";
                 
-            } else if (price === 5.00) {
+            } else if (price === 7.99) {
                 titleEl.innerText = "SÓ HOJE, AGORA!";
-                descEl.innerText = "Ok, estou basicamente pagando para você entrar. R$ 5,00 não paga nem um lanche. Libere seu acesso VIP agora.";
+                descEl.innerText = "Ok, estou basicamente pagando para você entrar. R$ 7,99 não paga nem um lanche. Libere seu acesso VIP agora.";
                 gifEl.src = "https://i.postimg.cc/vBSYrPLb/download.gif";
                 
-            } else if (price === 2.99) {
+            } else if (price === 4.99) {
                 // Última cartada: Volta para o ícone para visualização de emergência/FOMO máximo
                 gifContainer.classList.add('hidden');
                 iconBgEl.classList.remove('hidden');
                 
                 titleEl.innerText = "ÚLTIMA CHANCE ABSOLUTA!";
                 titleEl.classList.replace('text-gray-900', 'text-red-600');
-                descEl.innerText = "Essa é a sua última tela. Acesso liberado por apenas R$2,99. Se você fechar isso, a página expira e você perde a vaga.";
+                descEl.innerText = "Essa é a sua última tela. Acesso liberado por apenas R$4,99. Se você fechar isso, a página expira e você perde a vaga.";
                 
                 boxEl.classList.replace('bg-gray-50', 'bg-red-50');
                 boxEl.classList.replace('border-gray-200', 'border-red-200');
@@ -453,7 +453,7 @@
                 
                 btnEl.classList.replace('bg-of-blue', 'bg-red-600');
                 btnEl.classList.replace('hover:bg-of-darkBlue', 'hover:bg-red-700');
-                btnEl.innerText = "LIBERAR POR 1 REAL";
+                btnEl.innerText = "LIBERAR POR 4,99";
                 
                 iconBgEl.classList.replace('bg-blue-50', 'bg-red-100');
                 iconBgEl.classList.replace('text-of-blue', 'text-red-600');
