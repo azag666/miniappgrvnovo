@@ -8,10 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <script type="text/javascript">
@@ -77,7 +75,6 @@
             <main class="flex-1 overflow-y-auto pb-32">
                 <div class="relative">
                     <img src="https://i.postimg.cc/Qxx90B1Q/download.gif" alt="Capa" class="h-32 w-full object-cover object-center bg-gray-200" fetchpriority="high" decoding="async">
-                    
                     <div class="absolute -bottom-10 left-4">
                         <div class="w-20 h-20 rounded-full border-4 border-white bg-gray-200 overflow-hidden relative shadow-sm">
                             <img src="https://i.postimg.cc/BnPvV26x/IMG-0853.jpg" alt="Vitoria" class="w-full h-full object-cover">
@@ -99,23 +96,14 @@
                     
                     <p class="text-of-gray text-sm">@vitoriaaa.</p>
                     
-                    <div class="flex gap-4 mt-2 text-sm font-semibold text-of-gray">
-                        <span><i class="fa-solid fa-image text-of-blue"></i> 250 Fotos</span>
-                        <span><i class="fa-solid fa-video text-of-blue"></i> 100 Vídeos</span>
+                    <div class="flex gap-4 mt-2 text-sm font-semibold text-of-gray bg-gray-50 border border-gray-100 py-2 px-3 rounded-xl inline-flex shadow-sm transition-all">
+                        <span><i class="fa-solid fa-video text-of-blue"></i> <span id="count-vids" class="text-gray-900 font-bold">70</span> Vídeos</span>
+                        <span><i class="fa-solid fa-image text-of-blue"></i> <span id="count-pics" class="text-gray-900 font-bold">30</span> Fotos</span>
                     </div>
                     
                     <p class="mt-3 text-sm text-of-text leading-relaxed font-medium">
                         Desbloqueie agora para ter acesso instantâneo ao meu acervo privado completo. 
                     </p>
-
-                    <div class="flex flex-wrap gap-2 mt-3">
-                        <span class="bg-green-50 text-green-600 border border-green-200 text-xs font-semibold px-2 py-1 rounded-lg flex items-center gap-1">
-                            <i class="fa-solid fa-box-open"></i> Acesso Imediato
-                        </span>
-                        <span class="bg-blue-50 text-blue-600 border border-blue-200 text-xs font-semibold px-2 py-1 rounded-lg flex items-center gap-1">
-                            <i class="fa-solid fa-star"></i> Conteúdo Exclusivo
-                        </span>
-                    </div>
                 </div>
 
                 <div class="px-4 py-4 bg-gray-50 border-b border-of-border">
@@ -137,7 +125,7 @@
                             <div class="locked-overlay hidden absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white p-2 text-center z-10 transition-opacity">
                                 <i class="fa-solid fa-lock text-3xl mb-2 text-of-blue"></i>
                                 <span class="text-xs font-bold uppercase tracking-wider mb-1 text-red-400">Tempo Esgotado</span>
-                                <span class="text-[10px] leading-tight text-gray-200">Assine para ver o vídeo completo</span>
+                                <span class="text-[10px] leading-tight text-gray-200">Assine para ver completo</span>
                             </div>
                         </div>
                         
@@ -153,7 +141,7 @@
                             <div class="locked-overlay hidden absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white p-2 text-center z-10 transition-opacity">
                                 <i class="fa-solid fa-lock text-3xl mb-2 text-of-blue"></i>
                                 <span class="text-xs font-bold uppercase tracking-wider mb-1 text-red-400">Tempo Esgotado</span>
-                                <span class="text-[10px] leading-tight text-gray-200">Assine para ver o vídeo completo</span>
+                                <span class="text-[10px] leading-tight text-gray-200">Assine para ver completo</span>
                             </div>
                         </div>
                     </div>
@@ -163,7 +151,7 @@
                         <div class="relative z-10 flex items-center justify-center gap-3">
                             <i class="fa-solid fa-unlock-keyhole text-2xl text-white"></i>
                             <div class="flex flex-col">
-                                <span class="text-white font-black text-lg leading-none">+ 350 Mídias</span>
+                                <span id="media-total" class="text-white font-black text-lg leading-none">+ 100 Mídias</span>
                                 <span class="text-gray-300 text-xs mt-1">Disponíveis após confirmação</span>
                             </div>
                         </div>
@@ -171,39 +159,31 @@
                 </div>
 
                 <div class="px-4 py-5">
-                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3 flex items-start gap-3 shadow-sm">
-                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                            <i class="fa-solid fa-hand-holding-dollar text-blue-600"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-blue-800 font-bold text-sm">Garantia de Reembolso</h4>
-                            <p class="text-blue-700 text-xs mt-0.5 leading-tight">Acesso 100% garantido. Se você não gostar do conteúdo, devolvemos seu dinheiro.</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-green-50 border border-green-200 rounded-xl p-3 mb-5 flex items-start gap-3 shadow-sm">
-                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                            <i class="fa-solid fa-user-secret text-green-600"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-green-800 font-bold text-sm">Compra 100% Anônima</h4>
-                            <p class="text-green-700 text-xs mt-0.5 leading-tight">Não pedimos seus dados. Sigilo total garantido na sua fatura e no acesso.</p>
-                        </div>
-                    </div>
-
-                    <h3 class="text-sm font-semibold text-of-gray uppercase tracking-wider mb-3 text-center">Seu acesso VIP</h3>
+                    <h3 class="text-sm font-semibold text-of-gray uppercase tracking-wider mb-3 text-center">O que você vai receber</h3>
                     
                     <div class="flex flex-col gap-3">
-                        <div class="relative flex items-center p-5 rounded-2xl border border-gray-200 bg-white shadow-md transform scale-[1.02]">
+                        <div class="relative flex items-center p-5 rounded-2xl border border-of-blue bg-white shadow-lg transform scale-[1.02]">
                             <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-of-blue to-of-darkBlue text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase shadow-sm flex items-center gap-1 whitespace-nowrap">
-                                <i class="fa-solid fa-crown"></i> Acesso Completo
+                                <i class="fa-solid fa-crown"></i> Acesso Liberado
                             </div>
-                            <div class="flex-1 text-center mt-2">
-                                <h4 class="font-black text-xl text-of-text mb-1">VIP 🔞</h4>
-                                <p class="text-sm text-gray-500 font-medium mb-4">Acesso vitalício a todo o acervo + atualizações.</p>
+                            
+                            <div class="flex-1 text-center mt-2 w-full">
+                                <h4 id="vip-title" class="font-black text-xl text-of-text mb-4 transition-all">Pacote VIP Completo 🔞</h4>
+                                
+                                <ul id="feature-list" class="text-sm text-gray-700 font-medium mb-5 text-left flex flex-col gap-3 bg-blue-50/40 p-4 rounded-xl border border-blue-100/50 w-full shadow-inner">
+                                    <li id="feat-anal" class="flex items-center gap-3"><span class="text-xl w-6 text-center">🍑</span> Sexo Anal</li>
+                                    <li id="feat-explicito" class="flex items-center gap-3"><span class="text-xl w-6 text-center">🥵</span> Sexo Explícito</li>
+                                    <li id="feat-masturbacao" class="flex items-center gap-3"><span class="text-xl w-6 text-center">💦</span> Masturbando até gozar</li>
+                                    <li id="feat-primas" class="flex items-center gap-3"><span class="text-xl w-6 text-center">👯‍♀️</span> Proibido com minhas Primas</li>
+                                    <li id="feat-chamadas" class="flex items-center gap-3"><span class="text-xl w-6 text-center">❤️</span> Chamadas de vídeos Ao Vivo</li>
+                                    <li id="feat-pedidos" class="flex items-center gap-3"><span class="text-xl w-6 text-center">✅</span> Pedidos Especiais</li>
+                                    
+                                    <div id="feat-mais" class="text-[11px] text-of-blue font-black mt-1 text-center uppercase tracking-widest pt-3 border-t border-blue-100">e muuuuito mais</div>
+                                </ul>
+
                                 <div class="inline-flex items-center justify-center gap-2 bg-gray-50 px-5 py-2.5 rounded-xl border border-gray-100">
-                                    <span class="text-gray-400 line-through text-sm font-semibold">R$ 49,90</span>
-                                    <span class="font-black text-3xl text-of-blue tracking-tighter">R$ 16,99</span>
+                                    <span id="price-strike" class="text-gray-400 line-through text-sm font-semibold">R$ 49,90</span>
+                                    <span id="price-current" class="font-black text-3xl text-of-blue tracking-tighter">R$ 16,99</span>
                                 </div>
                             </div>
                         </div>
@@ -222,7 +202,7 @@
             <div class="absolute bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-up z-40">
                 <button onclick="processCheckout()" class="w-full bg-of-blue hover:bg-of-darkBlue active:scale-[0.98] text-white rounded-2xl py-4 px-4 font-black text-lg transition-all flex items-center justify-center gap-2 btn-pulse shadow-lg">
                     <i class="fa-brands fa-pix text-xl mr-1"></i>
-                    <span id="cta-text">DESBLOQUEAR POR R$ 16,99</span>
+                    <span id="cta-text">DESBLOQUEAR ACESSO</span>
                 </button>
             </div>
 
@@ -280,12 +260,8 @@
                          <i id="offer-icon" class="fa-solid fa-unlock-keyhole text-2xl"></i>
                     </div>
                     
-                    <div id="offer-gif-container" class="w-24 h-24 mx-auto mb-4 overflow-hidden rounded-2xl shadow-sm border border-gray-100 hidden transition-all duration-300">
-                        <img id="offer-gif" src="" alt="Oferta Especial" class="w-full h-full object-cover">
-                    </div>
-                    
                     <h2 id="offer-title" class="text-2xl font-black text-gray-900 uppercase mb-2 tracking-tight transition-colors duration-300">ESPERE! NÃO FECHE!</h2>
-                    <p id="offer-desc" class="text-gray-500 text-sm mb-6 leading-relaxed">Eu vi que você hesitou. Como quero muito que você veja meu conteúdo, liberei um desconto especial para você fechar agora.</p>
+                    <p id="offer-desc" class="text-gray-500 text-sm mb-6 leading-relaxed">Mensagem dinâmica.</p>
                     
                     <div id="offer-price-box" class="bg-gray-50 border border-gray-200 rounded-2xl p-5 mb-6 transition-colors duration-300 shadow-inner">
                         <p class="text-[11px] text-gray-500 uppercase font-bold tracking-widest mb-2">Oferta Exclusiva</p>
@@ -310,14 +286,13 @@
         let currentPrice = 16.99; 
         let currentTransactionId = null; 
         let offerStep = 0; 
-        const offerCascade = [12.99, 9.99, 7.99, 4.99];
+        const offerCascade = [12.99, 9.99, 5.00, 1.00];
 
         document.addEventListener('DOMContentLoaded', () => {
             setupOneTimeVideos();
             setTimeout(initSocialProof, 5000);
             armBackRedirect();
 
-            // Interceptação Nativa no Telegram
             if (window.Telegram && window.Telegram.WebApp) {
                 Telegram.WebApp.ready();
                 if (Telegram.WebApp.BackButton) {
@@ -380,7 +355,41 @@
             }, 18000); 
         }
 
-        // --- SISTEMA DE RETENÇÃO DINÂMICA E AGRESSIVA ---
+        // --- SISTEMA DE ATUALIZAÇÃO VISUAL DO PACOTE ---
+        function updatePackageUI(price) {
+            const specs = {
+                16.99: { vids: 70, pics: 30, hide: [], title: "Pacote VIP Completo 🔞", old: "49,90" },
+                12.99: { vids: 50, pics: 20, hide: ['feat-chamadas', 'feat-pedidos'], title: "Acesso VIP Reduzido 🔥", old: "16,99" },
+                9.99:  { vids: 30, pics: 15, hide: ['feat-chamadas', 'feat-pedidos', 'feat-primas'], title: "Pacote Básico 😈", old: "12,99" },
+                5.00:  { vids: 15, pics: 10, hide: ['feat-chamadas', 'feat-pedidos', 'feat-primas', 'feat-anal'], title: "Acesso Amostra VIP 🥵", old: "9,99" },
+                1.00:  { vids: 5,  pics: 5,  hide: ['feat-chamadas', 'feat-pedidos', 'feat-primas', 'feat-anal', 'feat-explicito', 'feat-mais'], title: "Degustação Express 💦", old: "5,00" }
+            };
+
+            const currentSpecs = specs[price] || specs[16.99];
+
+            // Atualiza contadores
+            document.getElementById('count-vids').innerText = currentSpecs.vids;
+            document.getElementById('count-pics').innerText = currentSpecs.pics;
+            document.getElementById('media-total').innerText = `+ ${currentSpecs.vids + currentSpecs.pics} Mídias`;
+            
+            // Atualiza Títulos e Preços na Box Principal
+            document.getElementById('vip-title').innerText = currentSpecs.title;
+            document.getElementById('price-current').innerText = `R$ ${price.toFixed(2).replace('.', ',')}`;
+            document.getElementById('price-strike').innerText = `R$ ${currentSpecs.old}`;
+
+            // Resetar Lista
+            document.querySelectorAll('#feature-list li, #feat-mais').forEach(el => {
+                el.style.display = 'flex';
+            });
+
+            // Ocultar Itens Removidos pelo Downsell
+            currentSpecs.hide.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        }
+
+        // --- SISTEMA DE RETENÇÃO DINÂMICA ---
         function armBackRedirect() {
             for (let i = 0; i < offerCascade.length + 1; i++) {
                 window.history.pushState({ page: 'retention' }, '', window.location.href);
@@ -391,10 +400,9 @@
         }
 
         function triggerNextOffer() {
-            // CORREÇÃO CRÍTICA: Se ele recusar até o último, NUNCA vai pro entregável.
             if (offerStep >= offerCascade.length) {
                 alert("Tempo esgotado. A oferta de acesso foi encerrada.");
-                window.location.reload(); // Devolve para o preço cheio inicial.
+                window.location.reload(); 
                 return;
             }
 
@@ -408,44 +416,24 @@
             const btnEl = document.getElementById('accept-offer-btn');
             const iconEl = document.getElementById('offer-icon');
             const iconBgEl = document.getElementById('offer-icon-bg');
-            
-            // Pegando os novos elementos do GIF
-            const gifContainer = document.getElementById('offer-gif-container');
-            const gifEl = document.getElementById('offer-gif');
 
             document.getElementById('offer-old-price').innerText = `R$ ${oldPrice.toFixed(2).replace('.', ',')}`;
             document.getElementById('offer-new-price').innerText = `R$ ${price.toFixed(2).replace('.', ',')}`;
             
-            // Lógica para alternar entre Ícone e GIF
-            if (price >= 5.00) {
-                iconBgEl.classList.add('hidden');
-                gifContainer.classList.remove('hidden');
-            }
-
-            // Textos persuasivos dinâmicos e GIFs baseados no step
+            // Textos persuasivos explicando a perda de itens
             if (price === 12.99) {
                 titleEl.innerText = "ESPERE! NÃO FECHE!";
-                descEl.innerText = "Eu vi que você hesitou. Como quero muito que você veja meu conteúdo, liberei um desconto especial para você fechar agora.";
-                gifEl.src = "https://i.postimg.cc/rmgdvC1N/download-(1).gif";
-                
+                descEl.innerHTML = "Eu vi que você hesitou. Liberei um desconto especial, mas atenção: <strong class='text-gray-800'>o pacote cai para 50 Vídeos (Pedidos Especiais e Chamadas ao Vivo não estarão inclusos)</strong>.";
             } else if (price === 9.99) {
                 titleEl.innerText = "SÉRIO QUE VAI PERDER?";
-                descEl.innerText = "Menos de 10 reais para ter acesso a todo o acervo? Essa é uma daquelas chances que não voltam mais. Pegue agora!";
-                gifEl.src = "https://i.postimg.cc/cLQLpBZm/download-(2).gif";
-                
-            } else if (price === 7.99) {
+                descEl.innerHTML = "Menos de 10 reais! Pacote Básico liberado: <strong class='text-gray-800'>30 Vídeos e 15 Fotos</strong>. As cenas gravadas com as minhas primas ficam de fora nessa versão.";
+            } else if (price === 5.00) {
                 titleEl.innerText = "SÓ HOJE, AGORA!";
-                descEl.innerText = "Ok, estou basicamente pagando para você entrar. R$ 7,99 não paga nem um lanche. Libere seu acesso VIP agora.";
-                gifEl.src = "https://i.postimg.cc/vBSYrPLb/download.gif";
-                
-            } else if (price === 4.99) {
-                // Última cartada: Volta para o ícone para visualização de emergência/FOMO máximo
-                gifContainer.classList.add('hidden');
-                iconBgEl.classList.remove('hidden');
-                
+                descEl.innerHTML = "Ok, estou quase pagando para você entrar. R$ 5,00 não paga um lanche. Leve <strong class='text-gray-800'>15 vídeos de masturbação e sexo explícito</strong> agora.";
+            } else if (price === 1.00) {
                 titleEl.innerText = "ÚLTIMA CHANCE ABSOLUTA!";
                 titleEl.classList.replace('text-gray-900', 'text-red-600');
-                descEl.innerText = "Essa é a sua última tela. Acesso liberado por apenas R$4,99. Se você fechar isso, a página expira e você perde a vaga.";
+                descEl.innerHTML = "Essa é a sua última tela. Acesso liberado por apenas 1 REAL. Degustação expressa com <strong class='text-red-600'>apenas 5 vídeos de masturbação</strong>. Se fechar, perde tudo.";
                 
                 boxEl.classList.replace('bg-gray-50', 'bg-red-50');
                 boxEl.classList.replace('border-gray-200', 'border-red-200');
@@ -453,7 +441,7 @@
                 
                 btnEl.classList.replace('bg-of-blue', 'bg-red-600');
                 btnEl.classList.replace('hover:bg-of-darkBlue', 'hover:bg-red-700');
-                btnEl.innerText = "LIBERAR POR 4,99";
+                btnEl.innerText = "LIBERAR POR 1 REAL";
                 
                 iconBgEl.classList.replace('bg-blue-50', 'bg-red-100');
                 iconBgEl.classList.replace('text-of-blue', 'text-red-600');
@@ -470,10 +458,15 @@
         }
 
         function acceptOffer(newPrice) {
+            // Esconde o modal
             document.getElementById('dynamic-offer-overlay').classList.replace('opacity-100', 'opacity-0');
             setTimeout(() => document.getElementById('dynamic-offer-overlay').classList.add('hidden'), 300);
             
             currentPrice = newPrice;
+            
+            // ATUALIZA A TELA DE FUNDO COM O PACOTE INFERIOR
+            updatePackageUI(newPrice);
+
             document.getElementById('cta-text').innerHTML = `DESBLOQUEAR POR R$ ${currentPrice.toFixed(2).replace('.', ',')}`;
             document.getElementById('pix-modal-total').innerText = `R$ ${currentPrice.toFixed(2).replace('.', ',')}`;
             
@@ -572,7 +565,6 @@
                 modal.classList.add('hidden');
                 modal.style.transform = '';
                 
-                // Força a exibição da próxima oferta em vez de simplesmente deixar ele sair
                 triggerNextOffer();
             }, 300);
         }
