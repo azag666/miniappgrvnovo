@@ -164,7 +164,7 @@
                     <div class="flex flex-col gap-3">
                         <div class="relative flex items-center p-5 rounded-2xl border border-of-blue bg-white shadow-lg transform scale-[1.02]">
                             <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-of-blue to-of-darkBlue text-white text-[10px] font-bold px-4 py-1 rounded-full uppercase shadow-sm flex items-center gap-1 whitespace-nowrap">
-                                <i class="fa-solid fa-crown"></i> Acesso Liberado
+                                <i class="fa-solid fa-crown"></i> Acesso Liberado na Hora
                             </div>
                             
                             <div class="flex-1 text-center mt-2 w-full">
@@ -229,7 +229,7 @@
                         <i class="fa-brands fa-pix text-2xl"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-1">Pagamento via PIX</h3>
-                    <p class="text-gray-500 text-sm mb-6">Copie o código Pix Copia e Cola abaixo para liberar seu acesso.</p>
+                    <p class="text-gray-500 text-sm mb-6">Copie o código Pix Copia e Cola abaixo para liberar seu acesso. O sistema libera na mesma hora!</p>
                     <div class="bg-white border border-gray-200 p-4 rounded-2xl inline-block mb-6 shadow-sm">
                         <img id="pix-qr-img" src="" alt="QR Code PIX" class="w-40 h-40 mx-auto">
                     </div>
@@ -267,12 +267,12 @@
                         <p class="text-[11px] text-gray-500 uppercase font-bold tracking-widest mb-2">Oferta Exclusiva</p>
                         <div class="flex items-center justify-center gap-3">
                             <p id="offer-old-price" class="text-gray-400 line-through font-semibold text-sm">R$ 16,99</p>
-                            <p id="offer-new-price" class="text-4xl font-black text-of-blue tracking-tighter transition-colors duration-300">R$ 12,99</p>
+                            <p id="offer-new-price" class="text-4xl font-black text-of-blue tracking-tighter transition-colors duration-300">R$ 12,00</p>
                         </div>
                     </div>
                     
-                    <button id="accept-offer-btn" class="w-full bg-of-blue hover:bg-of-darkBlue text-white font-black py-4 rounded-2xl text-lg uppercase tracking-wide mb-3 shadow-lg transition-colors duration-300">QUERO MEU DESCONTO</button>
-                    <button onclick="triggerNextOffer()" class="text-gray-400 text-xs uppercase tracking-wider font-semibold hover:text-gray-600 transition-colors p-2">Não, prefiro sair e perder tudo</button>
+                    <button id="accept-offer-btn" class="w-full bg-of-blue hover:bg-of-darkBlue text-white font-black py-4 rounded-2xl text-lg uppercase tracking-wide mb-3 shadow-lg transition-colors duration-300">QUERO MEU DESCONTO AGORA</button>
+                    <button onclick="triggerNextOffer()" class="text-gray-400 text-xs uppercase tracking-wider font-semibold hover:text-gray-600 transition-colors p-2">Não, prefiro perder essa putaria toda</button>
                 </div>
             </div>
 
@@ -286,7 +286,9 @@
         let currentPrice = 16.99; 
         let currentTransactionId = null; 
         let offerStep = 0; 
-        const offerCascade = [12.99, 9.99, 5.00, 1.00];
+        
+        // Cascata exata definida
+        const offerCascade = [12.00, 9.99, 5.99];
 
         document.addEventListener('DOMContentLoaded', () => {
             setupOneTimeVideos();
@@ -359,37 +361,32 @@
         function updatePackageUI(price) {
             const specs = {
                 16.99: { vids: 70, pics: 30, hide: [], title: "Pacote VIP Completo 🔞", old: "49,90" },
-                12.99: { vids: 50, pics: 20, hide: ['feat-chamadas', 'feat-pedidos'], title: "Acesso VIP Reduzido 🔥", old: "16,99" },
-                9.99:  { vids: 30, pics: 15, hide: ['feat-chamadas', 'feat-pedidos', 'feat-primas'], title: "Pacote Básico 😈", old: "12,99" },
-                5.00:  { vids: 15, pics: 10, hide: ['feat-chamadas', 'feat-pedidos', 'feat-primas', 'feat-anal'], title: "Acesso Amostra VIP 🥵", old: "9,99" },
-                1.00:  { vids: 5,  pics: 5,  hide: ['feat-chamadas', 'feat-pedidos', 'feat-primas', 'feat-anal', 'feat-explicito', 'feat-mais'], title: "Degustação Express 💦", old: "5,00" }
+                12.00: { vids: 50, pics: 20, hide: ['feat-chamadas', 'feat-pedidos'], title: "Acesso VIP Reduzido 🔥", old: "16,99" },
+                9.99:  { vids: 30, pics: 15, hide: ['feat-chamadas', 'feat-pedidos', 'feat-primas'], title: "Pacote Básico 😈", old: "12,00" },
+                5.99:  { vids: 15, pics: 10, hide: ['feat-chamadas', 'feat-pedidos', 'feat-primas', 'feat-anal'], title: "Acesso Amostra VIP 🥵", old: "9,99" }
             };
 
             const currentSpecs = specs[price] || specs[16.99];
 
-            // Atualiza contadores
             document.getElementById('count-vids').innerText = currentSpecs.vids;
             document.getElementById('count-pics').innerText = currentSpecs.pics;
             document.getElementById('media-total').innerText = `+ ${currentSpecs.vids + currentSpecs.pics} Mídias`;
             
-            // Atualiza Títulos e Preços na Box Principal
             document.getElementById('vip-title').innerText = currentSpecs.title;
             document.getElementById('price-current').innerText = `R$ ${price.toFixed(2).replace('.', ',')}`;
             document.getElementById('price-strike').innerText = `R$ ${currentSpecs.old}`;
 
-            // Resetar Lista
             document.querySelectorAll('#feature-list li, #feat-mais').forEach(el => {
                 el.style.display = 'flex';
             });
 
-            // Ocultar Itens Removidos pelo Downsell
             currentSpecs.hide.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.style.display = 'none';
             });
         }
 
-        // --- SISTEMA DE RETENÇÃO DINÂMICA ---
+        // --- SISTEMA DE RETENÇÃO DINÂMICA COM COPY AGRESSIVA ---
         function armBackRedirect() {
             for (let i = 0; i < offerCascade.length + 1; i++) {
                 window.history.pushState({ page: 'retention' }, '', window.location.href);
@@ -401,7 +398,7 @@
 
         function triggerNextOffer() {
             if (offerStep >= offerCascade.length) {
-                alert("Tempo esgotado. A oferta de acesso foi encerrada.");
+                alert("Acabou a palhaçada. A oferta foi encerrada.");
                 window.location.reload(); 
                 return;
             }
@@ -420,20 +417,17 @@
             document.getElementById('offer-old-price').innerText = `R$ ${oldPrice.toFixed(2).replace('.', ',')}`;
             document.getElementById('offer-new-price').innerText = `R$ ${price.toFixed(2).replace('.', ',')}`;
             
-            // Textos persuasivos explicando a perda de itens
-            if (price === 12.99) {
-                titleEl.innerText = "ESPERE! NÃO FECHE!";
-                descEl.innerHTML = "Eu vi que você hesitou. Liberei um desconto especial, mas atenção: <strong class='text-gray-800'>o pacote cai para 50 Vídeos (Pedidos Especiais e Chamadas ao Vivo não estarão inclusos)</strong>.";
+            // Textos agressivos com gatilho de liberação automática
+            if (price === 12.00) {
+                titleEl.innerText = "CARALHO, ESPERA AÍ!";
+                descEl.innerHTML = "Porra, vi que você deu pra trás. Liberei um desconto pra você não ficar só na punheta. O sistema <strong class='text-gray-800 uppercase'>libera tudo automaticamente</strong> na mesma hora! O pacote cai pra 50 vídeos (sem chamadas ao vivo).";
             } else if (price === 9.99) {
-                titleEl.innerText = "SÉRIO QUE VAI PERDER?";
-                descEl.innerHTML = "Menos de 10 reais! Pacote Básico liberado: <strong class='text-gray-800'>30 Vídeos e 15 Fotos</strong>. As cenas gravadas com as minhas primas ficam de fora nessa versão.";
-            } else if (price === 5.00) {
-                titleEl.innerText = "SÓ HOJE, AGORA!";
-                descEl.innerHTML = "Ok, estou quase pagando para você entrar. R$ 5,00 não paga um lanche. Leve <strong class='text-gray-800'>15 vídeos de masturbação e sexo explícito</strong> agora.";
-            } else if (price === 1.00) {
-                titleEl.innerText = "ÚLTIMA CHANCE ABSOLUTA!";
+                titleEl.innerText = "VAI ARREGAR MESMO?";
+                descEl.innerHTML = "Menos de 10 conto pra ver muita putaria! Pagou, o bot do Telegram <strong class='text-gray-800 uppercase'>libera o grupo automaticamente</strong>, sem frescura! Pacote Básico com 30 Vídeos e 15 Fotos. Anda logo!";
+            } else if (price === 5.99) {
+                titleEl.innerText = "ÚLTIMA CHANCE, PORRA!";
                 titleEl.classList.replace('text-gray-900', 'text-red-600');
-                descEl.innerHTML = "Essa é a sua última tela. Acesso liberado por apenas 1 REAL. Degustação expressa com <strong class='text-red-600'>apenas 5 vídeos de masturbação</strong>. Se fechar, perde tudo.";
+                descEl.innerHTML = "R$ 5,99 não paga nem um latão de cerveja! É pegar ou largar. Paga agora e a <strong class='text-red-600 uppercase'>liberação é automática na hora</strong>. Última chance pra ver o buraco da minha buceta, ou vai ficar só na vontade!";
                 
                 boxEl.classList.replace('bg-gray-50', 'bg-red-50');
                 boxEl.classList.replace('border-gray-200', 'border-red-200');
@@ -441,7 +435,7 @@
                 
                 btnEl.classList.replace('bg-of-blue', 'bg-red-600');
                 btnEl.classList.replace('hover:bg-of-darkBlue', 'hover:bg-red-700');
-                btnEl.innerText = "LIBERAR POR 1 REAL";
+                btnEl.innerText = "LIBERAR TUDO POR R$ 5,99";
                 
                 iconBgEl.classList.replace('bg-blue-50', 'bg-red-100');
                 iconBgEl.classList.replace('text-of-blue', 'text-red-600');
@@ -458,13 +452,11 @@
         }
 
         function acceptOffer(newPrice) {
-            // Esconde o modal
             document.getElementById('dynamic-offer-overlay').classList.replace('opacity-100', 'opacity-0');
             setTimeout(() => document.getElementById('dynamic-offer-overlay').classList.add('hidden'), 300);
             
             currentPrice = newPrice;
             
-            // ATUALIZA A TELA DE FUNDO COM O PACOTE INFERIOR
             updatePackageUI(newPrice);
 
             document.getElementById('cta-text').innerHTML = `DESBLOQUEAR POR R$ ${currentPrice.toFixed(2).replace('.', ',')}`;
