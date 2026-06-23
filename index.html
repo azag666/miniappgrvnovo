@@ -182,8 +182,8 @@
                                 </ul>
 
                                 <div class="inline-flex items-center justify-center gap-2 bg-gray-50 px-5 py-2.5 rounded-xl border border-gray-100">
-                                    <span id="price-strike" class="text-gray-400 line-through text-sm font-semibold">R$ 69,90</span>
-                                    <span id="price-current" class="font-black text-3xl text-of-blue tracking-tighter">R$ 29,99</span>
+                                    <span id="price-strike" class="text-gray-400 line-through text-sm font-semibold">R$ 39,90</span>
+                                    <span id="price-current" class="font-black text-3xl text-of-blue tracking-tighter">R$ 19,99</span>
                                 </div>
                             </div>
                         </div>
@@ -202,7 +202,7 @@
             <div class="absolute bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-up z-40">
                 <button onclick="processCheckout()" class="w-full bg-of-blue hover:bg-of-darkBlue active:scale-[0.98] text-white rounded-2xl py-4 px-4 font-black text-lg transition-all flex items-center justify-center gap-2 btn-pulse shadow-lg">
                     <i class="fa-brands fa-pix text-xl mr-1"></i>
-                    <span id="cta-text">DESBLOQUEAR POR R$ 29,99</span>
+                    <span id="cta-text">DESBLOQUEAR POR R$ 19,99</span>
                 </button>
             </div>
 
@@ -248,7 +248,7 @@
                     <p id="copy-msg" class="text-sm text-green-600 font-medium h-5 opacity-0 transition-opacity absolute w-full left-0 mt-[-10px]">Código copiado!</p>
                     <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center px-2">
                         <span class="text-gray-500 font-medium">Total a pagar:</span>
-                        <span id="pix-modal-total" class="text-2xl font-black text-gray-900">R$ 29,99</span>
+                        <span id="pix-modal-total" class="text-2xl font-black text-gray-900">R$ 19,99</span>
                     </div>
                 </div>
             </div>
@@ -266,8 +266,8 @@
                     <div id="offer-price-box" class="bg-gray-50 border border-gray-200 rounded-2xl p-5 mb-6 transition-colors duration-300 shadow-inner">
                         <p class="text-[11px] text-gray-500 uppercase font-bold tracking-widest mb-2">Oferta Exclusiva</p>
                         <div class="flex items-center justify-center gap-3">
-                            <p id="offer-old-price" class="text-gray-400 line-through font-semibold text-sm">R$ 29,99</p>
-                            <p id="offer-new-price" class="text-4xl font-black text-of-blue tracking-tighter transition-colors duration-300">R$ 17,00</p>
+                            <p id="offer-old-price" class="text-gray-400 line-through font-semibold text-sm">R$ 19,99</p>
+                            <p id="offer-new-price" class="text-4xl font-black text-of-blue tracking-tighter transition-colors duration-300">R$ 12,00</p>
                         </div>
                     </div>
                     
@@ -283,12 +283,12 @@
         const PUSHINPAY_API_URL = 'https://api.pushinpay.com.br/api';
         const PUSHINPAY_TOKEN = '67438|CLcA0BGtDBDaCFerhZBQ8nqSgH0VwAHOoFwYMveofe5332f9';
         
-        let currentPrice = 29.99; 
+        let currentPrice = 19.99; 
         let currentTransactionId = null; 
         let offerStep = 0; 
         
         // Cascata reduzida para um único downsell agressivo
-        const offerCascade = [17.00];
+        const offerCascade = [12.00];
 
         document.addEventListener('DOMContentLoaded', () => {
             setupOneTimeVideos();
@@ -360,11 +360,11 @@
         // --- SISTEMA DE ATUALIZAÇÃO VISUAL DO PACOTE ---
         function updatePackageUI(price) {
             const specs = {
-                29.99: { vids: 70, pics: 30, hide: [], title: "Pacote VIP Completo 🔞", old: "69,90" },
-                17.00: { vids: 40, pics: 15, hide: ['feat-chamadas', 'feat-pedidos'], title: "Acesso VIP Reduzido 🔥", old: "29,99" }
+                19.99: { vids: 70, pics: 30, hide: [], title: "Pacote VIP Completo 🔞", old: "69,90" },
+                12.00: { vids: 40, pics: 15, hide: ['feat-chamadas', 'feat-pedidos'], title: "Acesso VIP Reduzido 🔥", old: "19,99" }
             };
 
-            const currentSpecs = specs[price] || specs[29.99];
+            const currentSpecs = specs[price] || specs[19.99];
 
             document.getElementById('count-vids').innerText = currentSpecs.vids;
             document.getElementById('count-pics').innerText = currentSpecs.pics;
@@ -402,7 +402,7 @@
             }
 
             const price = offerCascade[offerStep];
-            const oldPrice = offerStep === 0 ? 29.99 : offerCascade[offerStep - 1];
+            const oldPrice = offerStep === 0 ? 19.99 : offerCascade[offerStep - 1];
             
             const overlay = document.getElementById('dynamic-offer-overlay');
             const titleEl = document.getElementById('offer-title');
@@ -416,7 +416,7 @@
             document.getElementById('offer-new-price').innerText = `R$ ${price.toFixed(2).replace('.', ',')}`;
             
             // Modal único hiper agressivo (Estilo "Última Chance" em vermelho)
-            if (price === 17.00) {
+            if (price === 12.00) {
                 titleEl.innerText = "ESPERA AÍ!";
                 titleEl.classList.replace('text-gray-900', 'text-red-600');
                 descEl.innerHTML = "Não quer ver minha bucetinha? <strong class='text-red-600 uppercase'>Compre agora e receba todos os vídeos na mesma hora!</strong> O pacote cai pra 40 vídeos (sem chamadas ao vivo e sem pedidos). É pegar ou largar!";
@@ -427,7 +427,7 @@
                 
                 btnEl.classList.replace('bg-of-blue', 'bg-red-600');
                 btnEl.classList.replace('hover:bg-of-darkBlue', 'hover:bg-red-700');
-                btnEl.innerText = "LIBERAR TUDO POR R$ 17,00";
+                btnEl.innerText = "LIBERAR TUDO POR R$ 12,00";
                 
                 iconBgEl.classList.replace('bg-blue-50', 'bg-red-100');
                 iconBgEl.classList.replace('text-of-blue', 'text-red-600');
