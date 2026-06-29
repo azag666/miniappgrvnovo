@@ -475,6 +475,7 @@
                 btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX Seguro...';
                 
                 let clickId = ""; // Fallback caso rastreio falhe
+                let debugResolveLog = "Não executado"; // Variável para debug do passo 1
 
                 // 1. TENTATIVA DE CAPTURA DO RASTREIO (Telegram click)
                 try {
@@ -487,15 +488,21 @@
                         })
                     });
 
+                    debugResolveLog = `Status HTTP: ${resolveClickRes.status}`;
+
                     if (resolveClickRes.ok) {
                         const clickData = await resolveClickRes.json();
+                        debugResolveLog += ` | Resposta: ${JSON.stringify(clickData)}`;
                         if (clickData.click_id) {
                             clickId = clickData.click_id;
                         }
                     } else {
+                        const errTxt = await resolveClickRes.text();
+                        debugResolveLog += ` | Erro API: ${errTxt}`;
                         console.warn('API de rastreamento falhou. Usando fallback para não perder a venda.');
                     }
                 } catch (trackingError) {
+                    debugResolveLog = `Erro de Rede: ${trackingError.message}`;
                     console.warn('Falha de rede ao resolver clique. Ignorando.', trackingError);
                 }
 
@@ -509,6 +516,7 @@
                         'x-api-key': HOTTRACK_API_KEY
                     },
                     body: JSON.stringify({ 
+                        api_key: HOTTRACK_API_KEY, // Adicionado ao body caso o backend exija aqui
                         click_id: clickId,
                         value_cents: valueCents 
                     })
@@ -517,7 +525,7 @@
                 if (!generateRes.ok) {
                     // EXTREMAMENTE IMPORTANTE: Captura a mensagem de erro do servidor
                     const errorTxt = await generateRes.text();
-                    throw new Error(`Status ${generateRes.status} | Detalhes: ${errorTxt}`);
+                    throw new Error(`\n[PASSO 1: RESOLVE CLICK]\n${debugResolveLog}\n\n[PASSO 2: GERAÇÃO PIX]\nStatus ${generateRes.status} | Detalhes: ${errorTxt}`);
                 }
                 
                 const data = await generateRes.json();
