@@ -27,7 +27,7 @@
         </div>
 
         <!-- Área de Logs para Debug -->
-        <div id="log-container" class="mt-8 p-3 bg-black text-green-400 text-[10px] font-mono rounded overflow-auto max-h-40 w-full text-left">
+        <div id="log-container" class="mt-8 p-3 bg-black text-green-400 text-[10px] font-mono rounded overflow-auto max-h-60 w-full text-left">
             <p class="text-white font-bold mb-1">Logs de Diagnóstico:</p>
             <div id="logs"></div>
         </div>
@@ -51,30 +51,45 @@
             const statusEl = document.getElementById('status');
             log("A iniciar autenticação...");
             
+            // Extraindo dados do usuário
+            const user = tg.initDataUnsafe?.user;
+            if (user) {
+                log(`User ID: ${user.id}`);
+                log(`Nome: ${user.first_name} ${user.last_name || ''}`);
+                log(`Username: @${user.username || 'N/A'}`);
+            } else {
+                log("AVISO: Nenhum dado de usuário encontrado no initDataUnsafe.");
+            }
+
             try {
-                // Certifique-se de que a URL é a correta do seu servidor
+                log("A enviar requisição para /api/miniapp/resolve-click...");
+                
                 const response = await fetch('/api/miniapp/resolve-click', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ initData: tg.initData, sellerId: '1' })
+                    body: JSON.stringify({ 
+                        initData: tg.initData, 
+                        sellerId: '1' 
+                    })
                 });
 
                 log(`Status da resposta: ${response.status}`);
                 const data = await response.json();
-                log(`Dados recebidos: ${JSON.stringify(data)}`);
+                log(`Dados da resposta: ${JSON.stringify(data)}`);
 
-                if (data.valid) {
+                if (data.valid && data.click_id) {
                     sessionClickId = data.click_id;
                     statusEl.innerText = "Pronto para gerar seu PIX.";
                     document.getElementById('checkout-form').classList.remove('hidden');
-                    log("Autenticado com sucesso.");
+                    log(`Sucesso! Click ID capturado: ${data.click_id}`);
                 } else {
-                    statusEl.innerText = "Erro de autenticação.";
-                    log("Erro: Token ou SellerId inválido.");
+                    statusEl.innerText = "Erro: Usuário não identificado.";
+                    log("Erro: O servidor retornou 'valid: false' ou click_id ausente.");
                 }
             } catch (err) {
                 statusEl.innerText = "Erro ao conectar ao servidor.";
-                log(`ERRO FATAL: ${err.message}`);
+                log(`ERRO FATAL DE REDE: ${err.message}`);
+                log("Verifique se o backend está acessível e se não há bloqueio de CORS.");
             }
         }
 
