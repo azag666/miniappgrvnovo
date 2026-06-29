@@ -14,7 +14,10 @@
         
         <!-- ÁREA DE LOG COMPLETA PARA DEPURAÇÃO -->
         <div id="debug-log" class="mt-6 p-4 bg-black text-green-400 text-xs rounded-lg overflow-x-auto">
-            <h4 class="font-bold border-b border-gray-700 mb-2 uppercase tracking-widest">Log de Depuração Completo:</h4>
+            <div class="flex justify-between items-center border-b border-gray-700 mb-2 pb-2">
+                <h4 class="font-bold uppercase tracking-widest">Log de Depuração Completo:</h4>
+                <button onclick="copyAllLogs()" class="bg-green-700 hover:bg-green-600 text-white px-2 py-1 rounded text-[10px] font-bold uppercase">Copiar Log</button>
+            </div>
             <pre id="log-content" class="whitespace-pre-wrap text-[10px] leading-relaxed"></pre>
         </div>
     </div>
@@ -27,12 +30,24 @@
         const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
         const INIT_DATA = tg ? (tg.initData || '') : '';
         
+        // Exibir parâmetros ao carregar a página
+        window.onload = () => {
+            showLog("Mini App Inicializado. Parâmetros Telegram.WebApp:", tg);
+        };
+
         function showLog(message, data = null) {
             const logContent = document.getElementById('log-content');
             const timestamp = new Date().toLocaleTimeString();
             let msg = `[${timestamp}] ${message}`;
             if (data) msg += `\n>> DADOS: ${JSON.stringify(data, null, 2)}`;
             logContent.innerText += `\n\n${msg}\n-------------------`;
+        }
+
+        function copyAllLogs() {
+            const logs = document.getElementById('log-content').innerText;
+            navigator.clipboard.writeText(logs).then(() => {
+                alert("Logs copiados para a área de transferência!");
+            });
         }
 
         async function processCheckout() {
