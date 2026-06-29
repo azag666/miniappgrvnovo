@@ -13,13 +13,23 @@
 <body class="flex flex-col items-center justify-center min-h-screen p-4">
 
     <div id="app" class="w-full max-w-md text-center">
-        <h1 class="text-2xl font-bold mb-4">Bem-vindo ao HotTrack</h1>
-        <div id="status" class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-            A carregar dados...
+        <h1 class="text-2xl font-bold mb-4">HotTrack Debugger</h1>
+        
+        <div id="status" class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800 text-sm mb-4">
+            Iniciando autenticação...
         </div>
-        <div id="result" class="mt-6 hidden">
-            <p class="text-sm">Click ID recuperado:</p>
-            <code id="click-id-display" class="block mt-2 p-2 bg-green-100 text-green-800 font-mono rounded"></code>
+
+        <div id="result" class="hidden mb-6">
+            <p class="text-sm font-semibold mb-2">Click ID recuperado:</p>
+            <div class="relative group">
+                <code id="click-id-display" class="block p-3 bg-green-100 text-green-800 font-mono rounded cursor-pointer hover:bg-green-200 transition"></code>
+                <span class="text-xs text-gray-500 mt-1">Toque para copiar</span>
+            </div>
+        </div>
+
+        <div id="log-container" class="mt-4 p-3 bg-black text-green-400 text-xs font-mono rounded overflow-auto max-h-40 text-left w-full">
+            <p class="font-bold text-white mb-1">Logs de Diagnóstico:</p>
+            <div id="logs"></div>
         </div>
     </div>
 
@@ -27,34 +37,57 @@
         const tg = window.Telegram.WebApp;
         tg.ready();
 
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.textContent = `> ${new Date().toLocaleTimeString()}: ${message}`;
+            logs.appendChild(entry);
+            console.log(message);
+        }
+
         async function initApp() {
             const statusEl = document.getElementById('status');
             const resultEl = document.getElementById('result');
             const clickIdEl = document.getElementById('click-id-display');
 
-            // 1. Enviar initData para o seu backend
+            log("Telegram WebApp pronto.");
+            
+            if (!tg.initData) {
+                log("ERRO: initData vazio! O app não está rodando dentro do Telegram.");
+                statusEl.innerText = "ERRO: initData vazio.";
+                return;
+            }
+
             try {
+                log("Enviando requisição ao servidor...");
                 const response = await fetch('/api/miniapp/resolve-click', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         initData: tg.initData,
-                        sellerId: '1' // Ajuste conforme a lógica de identificação do vendedor
+                        sellerId: '1'
                     })
                 });
 
                 const data = await response.json();
+                log(`Resposta recebida: ${JSON.stringify(data)}`);
 
                 if (data.valid && data.click_id) {
                     statusEl.innerText = "Autenticado com sucesso!";
                     clickIdEl.innerText = data.click_id;
                     resultEl.classList.remove('hidden');
+                    
+                    // Funcionalidade de copiar
+                    clickIdEl.onclick = () => {
+                        navigator.clipboard.writeText(data.click_id);
+                        alert("Copiado para a área de transferência!");
+                    };
                 } else {
-                    statusEl.innerText = "Não foi possível identificar o seu clique. (Orgânico)";
+                    statusEl.innerText = data.reason ? `Erro: ${data.reason}` : "Usuário sem clique rastreado (Orgânico).";
                 }
             } catch (err) {
-                statusEl.innerText = "Erro ao conectar ao servidor.";
-                console.error(err);
+                log(`ERRO DE CONEXÃO: ${err.message}`);
+                statusEl.innerText = "Erro ao conectar ao servidor. Verifique os logs abaixo.";
             }
         }
 
