@@ -22,19 +22,16 @@
         }
 
         async function testarAuth() {
-            log(`Iniciando teste...`);
+            log(`Iniciando teste com sellerId: 105...`);
             
             if (!tg.initData) {
                 log("ERRO: initData está vazio.");
                 return;
             }
 
-            // Log para conferir se o initData não está truncado
-            log(`initData (primeiros 50 caracteres): ${tg.initData.substring(0, 50)}...`);
-
             const payload = { 
                 initData: tg.initData, 
-                sellerId: '1' 
+                sellerId: '105' 
             };
 
             try {
@@ -53,10 +50,10 @@
                 log(`Resposta JSON: ${JSON.stringify(data)}`);
 
                 if (data.valid) {
-                    log("SUCESSO: Autenticação validada!");
+                    log("SUCESSO: Autenticação validada com o ID 105!");
                 } else {
                     log(`FALHA: O servidor retornou valid: false.`);
-                    log(`Motivo provável: Assinatura HMAC incorreta ou bot_token não coincide no banco.`);
+                    log(`Verifique se o bot utilizado no Telegram pertence realmente ao sellerId 105.`);
                 }
             } catch (e) {
                 log(`ERRO DE EXECUÇÃO: ${e.message}`);
