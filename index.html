@@ -2,80 +2,53 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HotTrack Checkout</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HotTrack Debug</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen p-4 flex flex-col items-center">
-
-    <div id="app" class="w-full max-w-md">
-        <h1 class="text-xl font-bold text-center mb-6">Finalizar Compra</h1>
-        
-        <div id="status" class="text-center p-3 text-sm bg-blue-100 text-blue-800 rounded mb-4">
-            A verificar ligação...
-        </div>
-
-        <div id="checkout-form" class="hidden space-y-4">
-            <input type="text" id="user-name" placeholder="Nome Completo" class="w-full p-3 border rounded">
-            <button id="btn-gerar-pix" class="w-full bg-green-600 text-white p-3 rounded font-bold">Gerar PIX</button>
-        </div>
-
-        <div id="log-container" class="mt-8 p-3 bg-black text-green-400 text-[10px] font-mono rounded overflow-auto max-h-60 w-full text-left">
-            <p class="text-white font-bold mb-1">Logs de Diagnóstico:</p>
-            <div id="logs"></div>
-        </div>
-    </div>
+<body class="bg-gray-100 p-4">
+    <div id="logs" class="bg-black text-green-400 p-4 font-mono text-xs overflow-auto h-96"></div>
 
     <script>
         const API_URL = 'https://hot-track.com';
         const API_KEY = 'b8d5ca45-58d0-47be-87b2-367038994c6b';
-        
         const tg = window.Telegram.WebApp;
-        tg.ready();
 
         function log(msg) {
-            const logs = document.getElementById('logs');
-            const entry = document.createElement('div');
-            entry.textContent = `> ${msg}`;
-            logs.appendChild(entry);
-            console.log(`[MiniApp Log] ${msg}`);
+            document.getElementById('logs').innerHTML += `<div>> ${msg}</div>`;
+            console.log(msg);
         }
 
-        async function initApp() {
+        async function testarVariacao(tipo) {
+            log(`--- Testando Variação ${tipo} ---`);
+            let payload = { initData: tg.initData, sellerId: '1' };
+            let headers = { 'Content-Type': 'application/json', 'x-api-key': API_KEY };
+
             try {
-                log("A enviar initData para validação...");
-                
-                const response = await fetch(`${API_URL}/api/miniapp/resolve-click`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-api-key': API_KEY 
-                    },
-                    body: JSON.stringify({ 
-                        initData: tg.initData, 
-                        sellerId: '1' 
-                    })
-                });
-
-                const data = await response.json();
-                
-                // Log da resposta completa para ver a "reason"
-                log(`Resposta: ${JSON.stringify(data)}`);
-
-                if (data.valid) {
-                    document.getElementById('status').innerText = "Autenticado.";
-                    document.getElementById('checkout-form').classList.remove('hidden');
-                } else {
-                    document.getElementById('status').innerText = `Erro: ${data.reason || 'Assinatura inválida'}`;
+                let response;
+                if (tipo === 1) { // Original
+                    response = await fetch(`${API_URL}/api/miniapp/resolve-click`, { method: 'POST', headers, body: JSON.stringify(payload) });
+                } else if (tipo === 2) { // Query String em vez de JSON
+                    response = await fetch(`${API_URL}/api/miniapp/resolve-click?sellerId=1&initData=${encodeURIComponent(tg.initData)}`, { method: 'POST', headers });
+                } else { // Sem sellerId
+                    response = await fetch(`${API_URL}/api/miniapp/resolve-click`, { method: 'POST', headers, body: JSON.stringify({ initData: tg.initData }) });
                 }
-            } catch (err) {
-                log(`Erro de rede: ${err.message}`);
-                document.getElementById('status').innerText = "Erro de conexão.";
+
+                const text = await response.text();
+                log(`Status: ${response.status}`);
+                log(`Corpo: ${text}`);
+            } catch (e) {
+                log(`Erro na variação ${tipo}: ${e.message}`);
             }
         }
 
-        window.onload = initApp;
+        window.onload = async () => {
+            if (!tg.initData) return log("ERRO: Sem initData");
+            await testarVariacao(1);
+            await testarVariacao(2);
+            await testarVariacao(3);
+        };
     </script>
 </body>
 </html>
