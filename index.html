@@ -9,14 +9,13 @@
 </head>
 <body class="bg-gray-100">
 
-    <!-- ... (seu conteúdo principal permanece igual) ... -->
-    <div class="px-4 pb-10">
+    <div class="px-4 pb-10 pt-10">
         <button onclick="processCheckout()" id="btn-checkout" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold">DESBLOQUEAR</button>
-        xq
-        <!-- ÁREA DE LOG PARA DEPURAÇÃO -->
-        <div id="debug-log" class="mt-6 p-4 bg-black text-green-400 text-xs rounded-lg overflow-x-auto hidden">
-            <h4 class="font-bold border-b border-gray-700 mb-2">Log de Depuração:</h4>
-            <pre id="log-content" class="whitespace-pre-wrap"></pre>
+        
+        <!-- ÁREA DE LOG COMPLETA PARA DEPURAÇÃO -->
+        <div id="debug-log" class="mt-6 p-4 bg-black text-green-400 text-xs rounded-lg overflow-x-auto">
+            <h4 class="font-bold border-b border-gray-700 mb-2 uppercase tracking-widest">Log de Depuração Completo:</h4>
+            <pre id="log-content" class="whitespace-pre-wrap text-[10px] leading-relaxed"></pre>
         </div>
     </div>
 
@@ -28,50 +27,54 @@
         const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
         const INIT_DATA = tg ? (tg.initData || '') : '';
         
-        function showLog(message) {
-            const logDiv = document.getElementById('debug-log');
+        function showLog(message, data = null) {
             const logContent = document.getElementById('log-content');
-            logDiv.classList.remove('hidden');
-            logContent.innerText += `\n> ${message}`;
+            const timestamp = new Date().toLocaleTimeString();
+            let msg = `[${timestamp}] ${message}`;
+            if (data) msg += `\n>> DADOS: ${JSON.stringify(data, null, 2)}`;
+            logContent.innerText += `\n\n${msg}\n-------------------`;
         }
 
         async function processCheckout() {
             try {
                 showLog("Iniciando Checkout...");
-                showLog(`InitData: ${INIT_DATA.substring(0, 20)}...`);
-
+                
                 // 1. RESOLVE CLICK
-                showLog("Chamando /miniapp/resolve-click");
+                const payloadClick = { initData: INIT_DATA, checkoutId: CHECKOUT_ID };
+                showLog("POST /miniapp/resolve-click", payloadClick);
+
                 const resolveClickRes = await fetch(`${HOTTRACK_BASE_URL}/miniapp/resolve-click`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ initData: INIT_DATA, checkoutId: CHECKOUT_ID })
+                    body: JSON.stringify(payloadClick)
                 });
 
                 const clickData = await resolveClickRes.json();
-                showLog(`Resposta Resolve: ${JSON.stringify(clickData)}`);
+                showLog("RESPOSTA /miniapp/resolve-click", clickData);
                 
-                if (!clickData.click_id) throw new Error("Sem click_id");
+                if (!clickData.click_id) throw new Error("API resolve-click não retornou click_id");
 
                 // 2. GERA PIX
-                showLog("Chamando /pix/generate");
+                const payloadPix = { click_id: clickData.click_id, value_cents: 1999 };
+                showLog("POST /pix/generate", payloadPix);
+
                 const generateRes = await fetch(`${HOTTRACK_BASE_URL}/pix/generate`, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
                         'x-api-key': HOTTRACK_API_KEY
                     },
-                    body: JSON.stringify({ click_id: clickData.click_id, value_cents: 1999 })
+                    body: JSON.stringify(payloadPix)
                 });
 
                 const pixData = await generateRes.json();
-                showLog(`Resposta PIX: ${JSON.stringify(pixData)}`);
+                showLog("RESPOSTA /pix/generate", pixData);
 
-                if (!generateRes.ok) throw new Error("Erro na API PIX");
+                if (!generateRes.ok) throw new Error("Erro na API PIX: " + JSON.stringify(pixData));
 
-                showLog("PIX Gerado com sucesso!");
+                showLog("SUCESSO: PIX Gerado!");
             } catch (error) {
-                showLog(`ERRO: ${error.message}`);
+                showLog(`ERRO CRÍTICO: ${error.message}`);
             }
         }
     </script>
