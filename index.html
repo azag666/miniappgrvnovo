@@ -26,7 +26,7 @@
             <div id="pix-code" class="mt-2 p-2 bg-gray-100 break-all font-mono text-xs"></div>
         </div>
 
-        <!-- Área de Logs para Debug -->
+        <!-- Área de Logs para Diagnóstico -->
         <div id="log-container" class="mt-8 p-3 bg-black text-green-400 text-[10px] font-mono rounded overflow-auto max-h-60 w-full text-left">
             <p class="text-white font-bold mb-1">Logs de Diagnóstico:</p>
             <div id="logs"></div>
@@ -34,7 +34,7 @@
     </div>
 
     <script>
-        // URL absoluta base para todas as chamadas da API
+        // URL absoluta da sua API
         const API_URL = 'https://hot-track.com';
         
         const tg = window.Telegram.WebApp;
@@ -52,12 +52,17 @@
 
         async function initApp() {
             const statusEl = document.getElementById('status');
-            const user = tg.initDataUnsafe?.user;
             
-            log("Iniciando conexão com: " + API_URL);
+            // Verifica se temos initData
+            if (!tg.initData) {
+                log("ERRO: initData indisponível.");
+                statusEl.innerText = "Erro: Inicie pelo Bot.";
+                return;
+            }
+
+            log("A tentar autenticar com: " + API_URL + "/api/miniapp/resolve-click");
             
             try {
-                // Chamada absoluta para a rota validada no seu server.js
                 const response = await fetch(`${API_URL}/api/miniapp/resolve-click`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -68,32 +73,32 @@
                 });
 
                 const data = await response.json();
-                log(`Resposta Auth: ${JSON.stringify(data)}`);
+                log(`Resposta recebida (Status ${response.status}): ${JSON.stringify(data)}`);
 
-                if (data.valid) {
+                if (response.ok && data.valid) {
                     sessionClickId = data.click_id;
-                    statusEl.innerText = "Pronto para gerar seu PIX.";
+                    statusEl.innerText = "Autenticado com sucesso.";
                     document.getElementById('checkout-form').classList.remove('hidden');
                 } else {
-                    statusEl.innerText = "Erro: Usuário não identificado.";
+                    statusEl.innerText = "Erro: Acesso não validado.";
+                    log("A validação falhou no servidor.");
                 }
             } catch (err) {
-                statusEl.innerText = "Erro ao conectar.";
-                log(`ERRO FATAL: ${err.message}`);
+                statusEl.innerText = "Erro de rede/conexão.";
+                log(`ERRO DE CONEXÃO: ${err.message}. Verifique se o backend está acessível.`);
             }
         }
 
         document.getElementById('btn-gerar-pix').onclick = async () => {
             const name = document.getElementById('user-name').value;
-            if (!name) return alert("Preencha o nome");
+            if (!name) return alert("Por favor, preencha o seu nome.");
 
             try {
-                // Chamada absoluta para a rota de geração de PIX
                 const response = await fetch(`${API_URL}/api/oferta/generate-pix`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        checkoutId: 'cko_seu_id', // Certifique-se de passar o ID correto aqui
+                        checkoutId: 'cko_seu_id', 
                         value_cents: 1000,
                         click_id: sessionClickId,
                         customer: { name: name }
@@ -101,14 +106,14 @@
                 });
 
                 const result = await response.json();
-                if (result.pix_qrcode) {
+                if (response.ok && result.pix_qrcode) {
                     document.getElementById('pix-code').innerText = result.pix_qrcode;
                     document.getElementById('pix-area').classList.remove('hidden');
                 } else {
-                    log("Erro: Falha ao gerar PIX.");
+                    log(`Erro ao gerar PIX: ${result.message || 'Falha desconhecida'}`);
                 }
             } catch (err) {
-                log(`ERRO PIX: ${err.message}`);
+                log(`ERRO NO PIX: ${err.message}`);
             }
         };
 
