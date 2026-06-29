@@ -514,7 +514,11 @@
                     })
                 });
 
-                if (!generateRes.ok) throw new Error('Falha de comunicação com o banco.');
+                if (!generateRes.ok) {
+                    // EXTREMAMENTE IMPORTANTE: Captura a mensagem de erro do servidor
+                    const errorTxt = await generateRes.text();
+                    throw new Error(`Status ${generateRes.status} | Detalhes: ${errorTxt}`);
+                }
                 
                 const data = await generateRes.json();
 
@@ -527,11 +531,12 @@
                     document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.qr_code_text)}`;
                     openPixModal();
                 } else {
-                    throw new Error('O sistema financeiro não retornou o código PIX completo.');
+                    throw new Error('A API não devolveu o transaction_id ou qr_code_text. Resposta completa: ' + JSON.stringify(data));
                 }
             } catch (error) {
                 console.error(error);
-                alert("Erro ao processar o pagamento. Tente novamente em instantes.");
+                // SISTEMA DE DEBUG VISUAL NO TELEGRAM
+                alert("ERRO PARA DEBUG (Mande print disto):\n\n" + error.message);
             } finally {
                 btnSpan.innerHTML = originalText;
             }
@@ -566,7 +571,7 @@
                     alert("Ainda não identificamos o seu pagamento. O PIX pode levar alguns segundos para ser processado. Tente novamente em instantes!");
                 }
             } catch (error) {
-                alert("Erro ao conectar com o banco. Se você já pagou, aguarde alguns segundos e tente novamente.");
+                alert("ERRO PARA DEBUG: " + error.message);
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
