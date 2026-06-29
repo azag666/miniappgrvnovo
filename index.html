@@ -23,6 +23,8 @@
         async function testarAuth() {
             log("Iniciando verificação de Click ID...");
             
+            // O initData do Telegram já contém o 'user' (que inclui id e nome)
+            // A identificação do bot é geralmente implícita na validação HMAC do servidor.
             const payload = { 
                 initData: tg.initData, 
                 sellerId: '105' 
@@ -44,10 +46,10 @@
                         log("SUCESSO: Click ID encontrado: " + data.click_id);
                     } else {
                         log("ALERTA: Autenticado, mas Click ID é NULL.");
-                        log("Causa: O chat_id " + data.user_id + " não tem click_id registrado no banco para o seller 105.");
+                        log("Causa: O registro de chat (User ID + Nome) não possui um Click ID associado no banco para o seller 105.");
                     }
                 } else {
-                    log("FALHA: " + (data.reason || "Erro desconhecido"));
+                    log("FALHA: " + (data.reason || "Erro de validação HMAC"));
                 }
             } catch (e) {
                 log(`ERRO: ${e.message}`);
