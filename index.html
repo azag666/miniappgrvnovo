@@ -34,7 +34,7 @@
     </div>
 
     <script>
-        // URL absoluta da sua API
+        // URL absoluta da API em produção
         const API_URL = 'https://hot-track.com';
         
         const tg = window.Telegram.WebApp;
@@ -53,14 +53,13 @@
         async function initApp() {
             const statusEl = document.getElementById('status');
             
-            // Verifica se temos initData
             if (!tg.initData) {
-                log("ERRO: initData indisponível.");
+                log("ERRO: initData indisponível. O Mini App deve ser aberto via Telegram.");
                 statusEl.innerText = "Erro: Inicie pelo Bot.";
                 return;
             }
 
-            log("A tentar autenticar com: " + API_URL + "/api/miniapp/resolve-click");
+            log("A tentar autenticar em: " + API_URL + "/api/miniapp/resolve-click");
             
             try {
                 const response = await fetch(`${API_URL}/api/miniapp/resolve-click`, {
@@ -80,12 +79,12 @@
                     statusEl.innerText = "Autenticado com sucesso.";
                     document.getElementById('checkout-form').classList.remove('hidden');
                 } else {
-                    statusEl.innerText = "Erro: Acesso não validado.";
-                    log("A validação falhou no servidor.");
+                    statusEl.innerText = "Erro: Acesso não validado pelo servidor.";
+                    log("A validação falhou. Verifique as credenciais e o sellerId.");
                 }
             } catch (err) {
                 statusEl.innerText = "Erro de rede/conexão.";
-                log(`ERRO DE CONEXÃO: ${err.message}. Verifique se o backend está acessível.`);
+                log(`ERRO DE CONEXÃO: ${err.message}. Certifique-se de que o backend permite o domínio do Telegram.`);
             }
         }
 
@@ -110,7 +109,7 @@
                     document.getElementById('pix-code').innerText = result.pix_qrcode;
                     document.getElementById('pix-area').classList.remove('hidden');
                 } else {
-                    log(`Erro ao gerar PIX: ${result.message || 'Falha desconhecida'}`);
+                    log(`Erro ao gerar PIX: ${result.message || 'Falha na resposta do servidor'}`);
                 }
             } catch (err) {
                 log(`ERRO NO PIX: ${err.message}`);
