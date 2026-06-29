@@ -489,14 +489,10 @@
                     if (resolveClickRes.ok) {
                         const clickData = await resolveClickRes.json();
                         
-                        // VERIFICAÇÃO CRUCIAL PARA AVISAR O UTILIZADOR DO ERRO NO PAINEL DELES
-                        if (clickData.valid === false) {
-                            alert(`⚠️ AVISO HOTTRACK:\nOs dados do Telegram não puderam ser validados. Verifique na HotTrack:\n1. Se o Bot Token está configurado.\n2. Se o Checkout ID "${CHECKOUT_ID}" está exato.`);
-                            return; // Pára aqui porque não vai gerar o PIX sem click_id de qualquer maneira.
-                        }
-
                         if (clickData.click_id) {
                             clickId = clickData.click_id;
+                        } else {
+                            console.warn('Rastreio não devolveu click_id válido. A tentar forçar a venda.');
                         }
                     }
                 } catch (trackingError) {
@@ -513,15 +509,14 @@
                         'x-api-key': HOTTRACK_API_KEY
                     },
                     body: JSON.stringify({ 
-                        api_key: HOTTRACK_API_KEY, 
-                        click_id: clickId,
+                        click_id: clickId, // Envia vazio caso o rastreio tenha falhado
                         value_cents: valueCents 
                     })
                 });
 
                 if (!generateRes.ok) {
                     const errorTxt = await generateRes.text();
-                    throw new Error(`O pagamento não pode ser processado sem os dados da campanha ativos. Verifique as suas configurações.`);
+                    throw new Error(`Erro HotTrack: Se vir isto, a API deles bloqueia vendas sem rastreio de clique. Configure o Bot Token no painel deles.\nDetalhes: ${errorTxt}`);
                 }
                 
                 const data = await generateRes.json();
