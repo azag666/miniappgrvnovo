@@ -3,180 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Debug de Click ID</title>
+    <title>TMA Deep Debugger</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             background-color: #0d1117;
             color: #c9d1d9;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            font-family: monospace;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             box-sizing: border-box;
-            text-align: center;
+            font-size: 14px;
         }
         
-        .card {
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 24px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-        }
-
-        h2 {
-            margin-top: 0;
-            font-size: 1.2rem;
-            color: #8b949e;
-            font-weight: 500;
-        }
-
-        .status {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
+        .header {
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
             font-weight: bold;
-            margin-bottom: 20px;
-            background-color: #21262d;
-            border: 1px solid #30363d;
-        }
-        .status.loading { color: #d2a8ff; border-color: #d2a8ff; }
-        .status.success { color: #3fb950; border-color: #3fb950; background-color: rgba(63, 185, 80, 0.1); }
-        .status.error { color: #ff7b72; border-color: #ff7b72; background-color: rgba(255, 123, 114, 0.1); }
-
-        .click-id-display {
-            background-color: #010409;
-            border: 1px dashed #30363d;
-            padding: 20px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 1.5rem;
             color: #58a6ff;
-            word-break: break-all;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        .debug-info {
-            margin-top: 20px;
-            font-size: 0.75rem;
-            color: #484f58;
-            text-align: left;
-            background: #010409;
-            padding: 10px;
+        #virtual-console {
+            background-color: #010409;
+            border: 1px solid #30363d;
             border-radius: 6px;
-            word-break: break-all;
-            display: none;
+            padding: 10px;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+            word-wrap: break-word;
         }
+
+        .log-entry { margin-bottom: 8px; border-bottom: 1px dashed #21262d; padding-bottom: 4px; }
+        .log-info { color: #8b949e; }
+        .log-success { color: #3fb950; }
+        .log-error { color: #ff7b72; font-weight: bold; }
+        .log-warn { color: #d2a8ff; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <div id="status-badge" class="status loading">⏳ Conectando à API...</div>
-        
-        <h2>Seu Click ID Resolvido:</h2>
-        
-        <div id="click-id-box" class="click-id-display">
-            Aguardando...
-        </div>
-
-        <div id="debug-log" class="debug-info"></div>
-    </div>
+    <div class="header">Terminal de Debug (HotTrack API)</div>
+    
+    <div id="virtual-console"></div>
 
     <script>
-        // Configurações do endpoint
+        // 1. Configuração do Console Virtual
+        const consoleEl = document.getElementById('virtual-console');
+        
+        function printLog(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log-entry log-${type}`;
+            
+            // Formata objetos para string legível
+            const text = typeof msg === 'object' ? JSON.stringify(msg, null, 2) : msg;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            div.textContent = `[${timestamp}] ${text}`;
+            consoleEl.appendChild(div);
+            consoleEl.scrollTop = consoleEl.scrollHeight; // Auto-scroll
+        }
+
+        // Sequestra os logs padrões
+        const origLog = console.log;
+        const origError = console.error;
+        console.log = (...args) => { printLog(args.join(' '), 'info'); origLog(...args); };
+        console.error = (...args) => { printLog(args.join(' '), 'error'); origError(...args); };
+
+        // 2. Configurações da API
         const API_URL = 'https://hot-track.com/api/miniapp/resolve-click-external';
         const TOKEN = 'b8d5ca45-58d0-47be-87b2-367038994c6b';
         const BOT_USERNAME = 'vitoriagrvbot';
 
-        const statusBadge = document.getElementById('status-badge');
-        const clickIdBox = document.getElementById('click-id-box');
-        const debugLog = document.getElementById('debug-log');
-
-        function logDebug(message) {
-            debugLog.style.display = 'block';
-            debugLog.innerHTML += `<div>> ${message}</div>`;
-        }
-
-        async function resolveClick() {
-            // Inicializa Telegram
-            if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initData) {
-                statusBadge.className = 'status error';
-                statusBadge.textContent = '❌ Fora do Telegram';
-                clickIdBox.textContent = 'N/A';
-                clickIdBox.style.color = '#ff7b72';
-                logDebug('initData não encontrado. Abra pelo bot.');
-                return;
-            }
-
-            const tg = window.Telegram.WebApp;
-            tg.ready();
-            tg.expand();
-
-            const initData = tg.initData;
-            logDebug('initData capturado com sucesso.');
-
+        async function runTests() {
             try {
-                // Envia para a sua API
-                logDebug(`Enviando POST para ${API_URL}`);
+                console.log("Iniciando bateria de testes...");
+
+                // Testa SDK do Telegram
+                if (!window.Telegram || !window.Telegram.WebApp) {
+                    console.error("FALHA CRÍTICA: window.Telegram não detectado.");
+                    return;
+                }
                 
-                const response = await fetch(API_URL, {
+                const tg = window.Telegram.WebApp;
+                tg.ready();
+                
+                if (!tg.initData) {
+                    console.error("FALHA: tg.initData está vazio. O app foi aberto via Menu Button ou Attachment Menu corretamente?");
+                    return;
+                }
+                
+                console.log("initData capturado:", tg.initData.substring(0, 30) + "...");
+
+                // Configura a requisição
+                const requestOptions = {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${TOKEN}`
                     },
                     body: JSON.stringify({
-                        initData: initData,
+                        initData: tg.initData,
                         botUsername: BOT_USERNAME
                     })
-                });
+                };
 
-                const data = await response.json();
-                logDebug(`Resposta HTTP: ${response.status}`);
-                logDebug(`Body: ${JSON.stringify(data)}`);
+                console.log(`Disparando POST para: ${API_URL}`);
+                
+                // Dispara a requisição
+                const response = await fetch(API_URL, requestOptions);
+                
+                printLog(`Status HTTP Retornado: ${response.status}`, response.ok ? 'success' : 'warn');
 
-                if (response.ok && data.valid) {
-                    statusBadge.className = 'status success';
-                    statusBadge.textContent = '✅ Sucesso!';
-                    
-                    if (data.click_id) {
-                        clickIdBox.textContent = data.click_id;
-                        clickIdBox.style.color = '#3fb950'; // Verde
+                // Lemos como texto bruto primeiro (para capturar erros 502/HTML do servidor)
+                const rawText = await response.text();
+                console.log("Corpo da resposta (RAW):", rawText);
+
+                // Tenta fazer o parse para JSON
+                try {
+                    const jsonData = JSON.parse(rawText);
+                    if (response.ok) {
+                        printLog(`SUCESSO - Dados da API: ${JSON.stringify(jsonData)}`, 'success');
                     } else {
-                        clickIdBox.textContent = 'NULL (Sem clique prévio)';
-                        clickIdBox.style.color = '#f0db4f'; // Amarelo
+                        console.error("Erro reportado pela API:", jsonData);
                     }
-                } else {
-                    statusBadge.className = 'status error';
-                    statusBadge.textContent = '⚠️ Erro de Validação';
-                    clickIdBox.textContent = 'FALHOU';
-                    clickIdBox.style.color = '#ff7b72';
-                    logDebug(`Erro da API: ${data.error || 'Desconhecido'}`);
+                } catch (jsonErr) {
+                    console.error("Falha ao ler JSON. O servidor devolveu HTML ou vazio?", jsonErr.message);
                 }
 
-            } catch (error) {
-                statusBadge.className = 'status error';
-                statusBadge.textContent = '🚨 Erro de Rede';
-                clickIdBox.textContent = 'FALHOU';
-                clickIdBox.style.color = '#ff7b72';
-                logDebug(`Exceção: ${error.message}`);
+            } catch (networkError) {
+                console.error("FALHA DE REDE OU CORS:", networkError.message);
+                printLog("Verifique se o backend tem permissão de CORS para lidar com requisições do Mini App.", 'warn');
             }
         }
 
-        // Executa assim que a página carrega
-        document.addEventListener('DOMContentLoaded', resolveClick);
+        // Dispara o teste após carregar a página
+        document.addEventListener('DOMContentLoaded', runTests);
     </script>
 </body>
 </html>
