@@ -34,8 +34,8 @@
     </div>
 
     <script>
-        // URL absoluta da API em produção
         const API_URL = 'https://hot-track.com';
+        const API_KEY = 'b8d5ca45-58d0-47be-87b2-367038994c6b';
         
         const tg = window.Telegram.WebApp;
         tg.ready();
@@ -54,17 +54,20 @@
             const statusEl = document.getElementById('status');
             
             if (!tg.initData) {
-                log("ERRO: initData indisponível. O Mini App deve ser aberto via Telegram.");
+                log("ERRO: initData indisponível.");
                 statusEl.innerText = "Erro: Inicie pelo Bot.";
                 return;
             }
 
-            log("A tentar autenticar em: " + API_URL + "/api/miniapp/resolve-click");
+            log("A tentar autenticar...");
             
             try {
                 const response = await fetch(`${API_URL}/api/miniapp/resolve-click`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': API_KEY 
+                    },
                     body: JSON.stringify({ 
                         initData: tg.initData, 
                         sellerId: '1' 
@@ -72,30 +75,32 @@
                 });
 
                 const data = await response.json();
-                log(`Resposta recebida (Status ${response.status}): ${JSON.stringify(data)}`);
+                log(`Resposta Auth: ${JSON.stringify(data)}`);
 
                 if (response.ok && data.valid) {
                     sessionClickId = data.click_id;
                     statusEl.innerText = "Autenticado com sucesso.";
                     document.getElementById('checkout-form').classList.remove('hidden');
                 } else {
-                    statusEl.innerText = "Erro: Acesso não validado pelo servidor.";
-                    log("A validação falhou. Verifique as credenciais e o sellerId.");
+                    statusEl.innerText = "Erro: Acesso não validado.";
                 }
             } catch (err) {
-                statusEl.innerText = "Erro de rede/conexão.";
-                log(`ERRO DE CONEXÃO: ${err.message}. Certifique-se de que o backend permite o domínio do Telegram.`);
+                statusEl.innerText = "Erro de conexão.";
+                log(`ERRO: ${err.message}`);
             }
         }
 
         document.getElementById('btn-gerar-pix').onclick = async () => {
             const name = document.getElementById('user-name').value;
-            if (!name) return alert("Por favor, preencha o seu nome.");
+            if (!name) return alert("Preencha o seu nome.");
 
             try {
                 const response = await fetch(`${API_URL}/api/oferta/generate-pix`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': API_KEY 
+                    },
                     body: JSON.stringify({
                         checkoutId: 'cko_seu_id', 
                         value_cents: 1000,
@@ -109,10 +114,10 @@
                     document.getElementById('pix-code').innerText = result.pix_qrcode;
                     document.getElementById('pix-area').classList.remove('hidden');
                 } else {
-                    log(`Erro ao gerar PIX: ${result.message || 'Falha na resposta do servidor'}`);
+                    log(`Erro PIX: ${result.message || 'Falha na geração'}`);
                 }
             } catch (err) {
-                log(`ERRO NO PIX: ${err.message}`);
+                log(`ERRO PIX: ${err.message}`);
             }
         };
 
