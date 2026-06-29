@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> Checkout</title>
+    <title>HotTrack Checkout</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -13,7 +13,7 @@
         <h1 class="text-xl font-bold text-center mb-6">Finalizar Compra</h1>
         
         <div id="status" class="text-center p-3 text-sm bg-blue-100 text-blue-800 rounded mb-4">
-            Validando acesso...
+            A validar acesso...
         </div>
 
         <div id="checkout-form" class="hidden space-y-4">
@@ -25,6 +25,12 @@
             <p class="font-bold">PIX gerado com sucesso!</p>
             <div id="pix-code" class="mt-2 p-2 bg-gray-100 break-all font-mono text-xs"></div>
         </div>
+
+        <!-- Área de Logs para Debug -->
+        <div id="log-container" class="mt-8 p-3 bg-black text-green-400 text-[10px] font-mono rounded overflow-auto max-h-40 w-full text-left">
+            <p class="text-white font-bold mb-1">Logs de Diagnóstico:</p>
+            <div id="logs"></div>
+        </div>
     </div>
 
     <script>
@@ -33,27 +39,42 @@
 
         let sessionClickId = null;
 
+        function log(msg) {
+            const logs = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.textContent = `> ${msg}`;
+            logs.appendChild(entry);
+            console.log(`[MiniApp Log] ${msg}`);
+        }
+
         async function initApp() {
             const statusEl = document.getElementById('status');
+            log("A iniciar autenticação...");
             
             try {
+                // Certifique-se de que a URL é a correta do seu servidor
                 const response = await fetch('/api/miniapp/resolve-click', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ initData: tg.initData, sellerId: '1' })
                 });
 
+                log(`Status da resposta: ${response.status}`);
                 const data = await response.json();
+                log(`Dados recebidos: ${JSON.stringify(data)}`);
 
                 if (data.valid) {
                     sessionClickId = data.click_id;
                     statusEl.innerText = "Pronto para gerar seu PIX.";
                     document.getElementById('checkout-form').classList.remove('hidden');
+                    log("Autenticado com sucesso.");
                 } else {
                     statusEl.innerText = "Erro de autenticação.";
+                    log("Erro: Token ou SellerId inválido.");
                 }
             } catch (err) {
-                statusEl.innerText = "Erro ao conectar.";
+                statusEl.innerText = "Erro ao conectar ao servidor.";
+                log(`ERRO FATAL: ${err.message}`);
             }
         }
 
@@ -61,21 +82,30 @@
             const name = document.getElementById('user-name').value;
             if (!name) return alert("Preencha o nome");
 
-            const response = await fetch('/api/oferta/generate-pix', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    checkoutId: 'cko_seu_id', // Ajuste conforme seu backend
-                    value_cents: 1000,
-                    click_id: sessionClickId,
-                    customer: { name: name }
-                })
-            });
+            log("A solicitar geração de PIX...");
+            try {
+                const response = await fetch('/api/oferta/generate-pix', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        checkoutId: 'cko_seu_id',
+                        value_cents: 1000,
+                        click_id: sessionClickId,
+                        customer: { name: name }
+                    })
+                });
 
-            const result = await response.json();
-            if (result.pix_qrcode) {
-                document.getElementById('pix-code').innerText = result.pix_qrcode;
-                document.getElementById('pix-area').classList.remove('hidden');
+                const result = await response.json();
+                log(`Resultado PIX: ${JSON.stringify(result)}`);
+
+                if (result.pix_qrcode) {
+                    document.getElementById('pix-code').innerText = result.pix_qrcode;
+                    document.getElementById('pix-area').classList.remove('hidden');
+                } else {
+                    log("Erro: PIX não retornado pelo servidor.");
+                }
+            } catch (err) {
+                log(`ERRO NA GERAÇÃO PIX: ${err.message}`);
             }
         };
 
