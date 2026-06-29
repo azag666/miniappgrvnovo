@@ -2,13 +2,13 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HotTrack Debug</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-4">
-    <div id="logs" class="bg-black text-green-400 p-4 font-mono text-xs overflow-auto h-96"></div>
+    <div id="logs" class="bg-black text-green-400 p-4 font-mono text-xs overflow-auto h-96 w-full rounded"></div>
 
     <script>
         const API_URL = 'https://hot-track.com';
@@ -16,38 +16,56 @@
         const tg = window.Telegram.WebApp;
 
         function log(msg) {
-            document.getElementById('logs').innerHTML += `<div>> ${msg}</div>`;
+            const logs = document.getElementById('logs');
+            logs.innerHTML += `<div>> ${msg}</div>`;
             console.log(msg);
         }
 
-        async function testarVariacao(tipo) {
-            log(`--- Testando Variação ${tipo} ---`);
-            let payload = { initData: tg.initData, sellerId: '1' };
-            let headers = { 'Content-Type': 'application/json', 'x-api-key': API_KEY };
+        async function testarAuth() {
+            log(`Iniciando teste...`);
+            
+            if (!tg.initData) {
+                log("ERRO: initData está vazio.");
+                return;
+            }
+
+            // Log para conferir se o initData não está truncado
+            log(`initData (primeiros 50 caracteres): ${tg.initData.substring(0, 50)}...`);
+
+            const payload = { 
+                initData: tg.initData, 
+                sellerId: '1' 
+            };
 
             try {
-                let response;
-                if (tipo === 1) { // Original
-                    response = await fetch(`${API_URL}/api/miniapp/resolve-click`, { method: 'POST', headers, body: JSON.stringify(payload) });
-                } else if (tipo === 2) { // Query String em vez de JSON
-                    response = await fetch(`${API_URL}/api/miniapp/resolve-click?sellerId=1&initData=${encodeURIComponent(tg.initData)}`, { method: 'POST', headers });
-                } else { // Sem sellerId
-                    response = await fetch(`${API_URL}/api/miniapp/resolve-click`, { method: 'POST', headers, body: JSON.stringify({ initData: tg.initData }) });
-                }
+                const response = await fetch(`${API_URL}/api/miniapp/resolve-click`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': API_KEY 
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-                const text = await response.text();
-                log(`Status: ${response.status}`);
-                log(`Corpo: ${text}`);
+                const data = await response.json();
+                
+                log(`Status HTTP: ${response.status}`);
+                log(`Resposta JSON: ${JSON.stringify(data)}`);
+
+                if (data.valid) {
+                    log("SUCESSO: Autenticação validada!");
+                } else {
+                    log(`FALHA: O servidor retornou valid: false.`);
+                    log(`Motivo provável: Assinatura HMAC incorreta ou bot_token não coincide no banco.`);
+                }
             } catch (e) {
-                log(`Erro na variação ${tipo}: ${e.message}`);
+                log(`ERRO DE EXECUÇÃO: ${e.message}`);
             }
         }
 
         window.onload = async () => {
-            if (!tg.initData) return log("ERRO: Sem initData");
-            await testarVariacao(1);
-            await testarVariacao(2);
-            await testarVariacao(3);
+            tg.ready();
+            await testarAuth();
         };
     </script>
 </body>
