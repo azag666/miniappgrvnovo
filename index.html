@@ -3,33 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> Mini App</title>
+    <title> Checkout</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: var(--tg-theme-bg-color, #ffffff); color: var(--tg-theme-text-color, #000000); }
-    </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
+<body class="bg-gray-50 min-h-screen p-4 flex flex-col items-center">
 
-    <div id="app" class="w-full max-w-md text-center">
-        <h1 class="text-2xl font-bold mb-4">ERRO</h1>
+    <div id="app" class="w-full max-w-md">
+        <h1 class="text-xl font-bold text-center mb-6">Finalizar Compra</h1>
         
-        <div id="status" class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800 text-sm mb-4">
-            Iniciando autenticação...
+        <div id="status" class="text-center p-3 text-sm bg-blue-100 text-blue-800 rounded mb-4">
+            Validando acesso...
         </div>
 
-        <div id="result" class="hidden mb-6">
-            <p class="text-sm font-semibold mb-2">Click ID recuperado:</p>
-            <div class="relative group">
-                <code id="click-id-display" class="block p-3 bg-green-100 text-green-800 font-mono rounded cursor-pointer hover:bg-green-200 transition"></code>
-                <span class="text-xs text-gray-500 mt-1">Toque para copiar</span>
-            </div>
+        <div id="checkout-form" class="hidden space-y-4">
+            <input type="text" id="user-name" placeholder="Nome Completo" class="w-full p-3 border rounded">
+            <button id="btn-gerar-pix" class="w-full bg-green-600 text-white p-3 rounded font-bold">Gerar PIX</button>
         </div>
 
-        <div id="log-container" class="mt-4 p-3 bg-black text-green-400 text-xs font-mono rounded overflow-auto max-h-40 text-left w-full">
-            <p class="font-bold text-white mb-1">Logs de Diagnóstico:</p>
-            <div id="logs"></div>
+        <div id="pix-area" class="hidden mt-6 p-4 bg-white border rounded text-center">
+            <p class="font-bold">PIX gerado com sucesso!</p>
+            <div id="pix-code" class="mt-2 p-2 bg-gray-100 break-all font-mono text-xs"></div>
         </div>
     </div>
 
@@ -37,59 +31,53 @@
         const tg = window.Telegram.WebApp;
         tg.ready();
 
-        function log(message) {
-            const logs = document.getElementById('logs');
-            const entry = document.createElement('div');
-            entry.textContent = `> ${new Date().toLocaleTimeString()}: ${message}`;
-            logs.appendChild(entry);
-            console.log(message);
-        }
+        let sessionClickId = null;
 
         async function initApp() {
             const statusEl = document.getElementById('status');
-            const resultEl = document.getElementById('result');
-            const clickIdEl = document.getElementById('click-id-display');
-
-            log("Telegram WebApp pronto.");
             
-            if (!tg.initData) {
-                log("ERRO: initData vazio! O app não está rodando dentro do Telegram.");
-                statusEl.innerText = "ERRO: initData vazio.";
-                return;
-            }
-
             try {
-                log("Enviando requisição ao servidor...");
                 const response = await fetch('/api/miniapp/resolve-click', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        initData: tg.initData,
-                        sellerId: '1'
-                    })
+                    body: JSON.stringify({ initData: tg.initData, sellerId: '1' })
                 });
 
                 const data = await response.json();
-                log(`Resposta recebida: ${JSON.stringify(data)}`);
 
-                if (data.valid && data.click_id) {
-                    statusEl.innerText = "Autenticado com sucesso!";
-                    clickIdEl.innerText = data.click_id;
-                    resultEl.classList.remove('hidden');
-                    
-                    // Funcionalidade de copiar
-                    clickIdEl.onclick = () => {
-                        navigator.clipboard.writeText(data.click_id);
-                        alert("Copiado para a área de transferência!");
-                    };
+                if (data.valid) {
+                    sessionClickId = data.click_id;
+                    statusEl.innerText = "Pronto para gerar seu PIX.";
+                    document.getElementById('checkout-form').classList.remove('hidden');
                 } else {
-                    statusEl.innerText = data.reason ? `Erro: ${data.reason}` : "Usuário sem clique rastreado (Orgânico).";
+                    statusEl.innerText = "Erro de autenticação.";
                 }
             } catch (err) {
-                log(`ERRO DE CONEXÃO: ${err.message}`);
-                statusEl.innerText = "Erro ao conectar ao servidor. Verifique os logs abaixo.";
+                statusEl.innerText = "Erro ao conectar.";
             }
         }
+
+        document.getElementById('btn-gerar-pix').onclick = async () => {
+            const name = document.getElementById('user-name').value;
+            if (!name) return alert("Preencha o nome");
+
+            const response = await fetch('/api/oferta/generate-pix', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    checkoutId: 'cko_seu_id', // Ajuste conforme seu backend
+                    value_cents: 1000,
+                    click_id: sessionClickId,
+                    customer: { name: name }
+                })
+            });
+
+            const result = await response.json();
+            if (result.pix_qrcode) {
+                document.getElementById('pix-code').innerText = result.pix_qrcode;
+                document.getElementById('pix-area').classList.remove('hidden');
+            }
+        };
 
         window.onload = initApp;
     </script>
