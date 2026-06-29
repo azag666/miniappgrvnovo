@@ -34,7 +34,9 @@
     </div>
 
     <script>
-        const API_URL = 'https://hot-track.com'; // URL base do seu servidor
+        // URL absoluta base para todas as chamadas da API
+        const API_URL = 'https://hot-track.com';
+        
         const tg = window.Telegram.WebApp;
         tg.ready();
 
@@ -55,6 +57,7 @@
             log("Iniciando conexão com: " + API_URL);
             
             try {
+                // Chamada absoluta para a rota validada no seu server.js
                 const response = await fetch(`${API_URL}/api/miniapp/resolve-click`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -85,10 +88,13 @@
             if (!name) return alert("Preencha o nome");
 
             try {
-                const response = await fetch(`${API_URL}/api/pix/generate`, {
+                // Chamada absoluta para a rota de geração de PIX
+                const response = await fetch(`${API_URL}/api/oferta/generate-pix`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        checkoutId: 'cko_seu_id', // Certifique-se de passar o ID correto aqui
+                        value_cents: 1000,
                         click_id: sessionClickId,
                         customer: { name: name }
                     })
