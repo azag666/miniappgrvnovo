@@ -26,9 +26,9 @@
             <div id="pix-code" class="mt-2 p-2 bg-gray-100 break-all font-mono text-xs"></div>
         </div>
 
-        <!-- Área de Logs para Diagnóstico -->
+        <!-- Área de Logs Detalhados -->
         <div id="log-container" class="mt-8 p-3 bg-black text-green-400 text-[10px] font-mono rounded overflow-auto max-h-60 w-full text-left">
-            <p class="text-white font-bold mb-1">Logs de Diagnóstico:</p>
+            <p class="text-white font-bold mb-1">Logs Detalhados:</p>
             <div id="logs"></div>
         </div>
     </div>
@@ -55,11 +55,10 @@
             
             if (!tg.initData) {
                 log("ERRO: initData indisponível.");
-                statusEl.innerText = "Erro: Inicie pelo Bot.";
                 return;
             }
 
-            log("A tentar autenticar...");
+            log("A tentar POST em: /api/miniapp/resolve-click");
             
             try {
                 const response = await fetch(`${API_URL}/api/miniapp/resolve-click`, {
@@ -74,25 +73,31 @@
                     })
                 });
 
-                const data = await response.json();
-                log(`Resposta Auth: ${JSON.stringify(data)}`);
+                // Ler o corpo da resposta mesmo em erro para ver a mensagem do servidor
+                const responseText = await response.text();
+                log(`Status: ${response.status} | Resposta: ${responseText}`);
 
-                if (response.ok && data.valid) {
-                    sessionClickId = data.click_id;
-                    statusEl.innerText = "Autenticado com sucesso.";
-                    document.getElementById('checkout-form').classList.remove('hidden');
+                if (response.ok) {
+                    const data = JSON.parse(responseText);
+                    if (data.valid) {
+                        sessionClickId = data.click_id;
+                        statusEl.innerText = "Autenticado com sucesso.";
+                        document.getElementById('checkout-form').classList.remove('hidden');
+                    } else {
+                        statusEl.innerText = "Erro: Acesso não validado.";
+                    }
                 } else {
-                    statusEl.innerText = "Erro: Acesso não validado.";
+                    statusEl.innerText = `Erro ${response.status}: Servidor rejeitou.`;
                 }
             } catch (err) {
-                statusEl.innerText = "Erro de conexão.";
-                log(`ERRO: ${err.message}`);
+                statusEl.innerText = "Falha de conexão.";
+                log(`ERRO FATAL: ${err.message}`);
             }
         }
 
         document.getElementById('btn-gerar-pix').onclick = async () => {
             const name = document.getElementById('user-name').value;
-            if (!name) return alert("Preencha o seu nome.");
+            if (!name) return alert("Preencha o nome.");
 
             try {
                 const response = await fetch(`${API_URL}/api/oferta/generate-pix`, {
@@ -110,11 +115,11 @@
                 });
 
                 const result = await response.json();
-                if (response.ok && result.pix_qrcode) {
-                    document.getElementById('pix-code').innerText = result.pix_qrcode;
+                if (response.ok) {
+                    document.getElementById('pix-code').innerText = result.pix_qrcode || "Código não recebido";
                     document.getElementById('pix-area').classList.remove('hidden');
                 } else {
-                    log(`Erro PIX: ${result.message || 'Falha na geração'}`);
+                    log(`Erro PIX (Status ${response.status}): ${JSON.stringify(result)}`);
                 }
             } catch (err) {
                 log(`ERRO PIX: ${err.message}`);
