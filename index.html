@@ -54,9 +54,12 @@
             // Extraindo dados do usuário
             const user = tg.initDataUnsafe?.user;
             if (user) {
-                log(`User ID: ${user.id}`);
-                log(`Nome: ${user.first_name} ${user.last_name || ''}`);
+                // Nota: O Telegram não envia chat_id via MiniApp por segurança.
+                // Usamos o user.id como identificador único.
+                log(`User ID (Telegram ID): ${user.id}`);
+                log(`Nome do Lead: ${user.first_name} ${user.last_name || ''}`);
                 log(`Username: @${user.username || 'N/A'}`);
+                log(`Idioma: ${user.language_code || 'N/A'}`);
             } else {
                 log("AVISO: Nenhum dado de usuário encontrado no initDataUnsafe.");
             }
