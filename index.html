@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Integração do SDK do Telegram Mini App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <script type="text/javascript">
@@ -280,8 +282,14 @@
     </div>
 
     <script>
-        const PUSHINPAY_API_URL = 'https://api.pushinpay.com.br/api';
-        const PUSHINPAY_TOKEN = '67438|CLcA0BGtDBDaCFerhZBQ8nqSgH0VwAHOoFwYMveofe5332f9';
+        // CONFIGURAÇÕES HOTTRACK
+        const HOTTRACK_API_KEY = 'b8d5ca45-58d0-47be-87b2-367038994c6b';
+        const HOTTRACK_BASE_URL = 'https://hot-track.com/api';
+        const CHECKOUT_ID = 'checkout_vitoria';
+        
+        // Inicialização do SDK do Telegram e dados de Tracking
+        const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+        const INIT_DATA = tg ? (tg.initData || '') : '';
         
         let currentPrice = 19.99; 
         let currentTransactionId = null; 
@@ -295,15 +303,16 @@
             setTimeout(initSocialProof, 5000);
             armBackRedirect();
 
-            if (window.Telegram && window.Telegram.WebApp) {
-                Telegram.WebApp.ready();
-                if (Telegram.WebApp.BackButton) {
-                    Telegram.WebApp.BackButton.show();
-                    Telegram.WebApp.onEvent('backButtonClicked', function() {
+            if (tg) {
+                tg.ready();
+                if (tg.BackButton) {
+                    tg.BackButton.show();
+                    tg.onEvent('backButtonClicked', function() {
                         triggerNextOffer();
                     });
                 }
-                Telegram.WebApp.isClosingConfirmationEnabled = true;
+                tg.isClosingConfirmationEnabled = true;
+                tg.expand();
             }
         });
 
@@ -457,34 +466,71 @@
             processCheckout(); 
         }
 
-        // --- INTEGRAÇÃO PUSHINPAY ---
+        // --- INTEGRAÇÃO HOTTRACK (API DE CHECKOUT) ---
         async function processCheckout() {
             const btnSpan = document.getElementById('cta-text');
             const originalText = btnSpan.innerHTML;
             
             try {
-                btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
+                btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX Seguro...';
+                
+                let clickId = ""; // Fallback caso rastreio falhe
+
+                // 1. TENTATIVA DE CAPTURA DO RASTREIO (Telegram click)
+                try {
+                    const resolveClickRes = await fetch(`${HOTTRACK_BASE_URL}/miniapp/resolve-click`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            initData: INIT_DATA,
+                            checkoutId: CHECKOUT_ID
+                        })
+                    });
+
+                    if (resolveClickRes.ok) {
+                        const clickData = await resolveClickRes.json();
+                        if (clickData.click_id) {
+                            clickId = clickData.click_id;
+                        }
+                    } else {
+                        console.warn('API de rastreamento falhou. Usando fallback para não perder a venda.');
+                    }
+                } catch (trackingError) {
+                    console.warn('Falha de rede ao resolver clique. Ignorando.', trackingError);
+                }
+
+                // 2. GERAÇÃO DO PIX COM A HOTTRACK
                 const valueCents = Math.round(currentPrice * 100);
 
-                const response = await fetch(`${PUSHINPAY_API_URL}/pix/cashIn`, {
+                const generateRes = await fetch(`${HOTTRACK_BASE_URL}/pix/generate`, {
                     method: 'POST',
                     headers: { 
-                        'Content-Type': 'application/json', 'Accept': 'application/json',
-                        'Authorization': `Bearer ${PUSHINPAY_TOKEN}` 
+                        'Content-Type': 'application/json',
+                        'x-api-key': HOTTRACK_API_KEY
                     },
-                    body: JSON.stringify({ value: valueCents })
+                    body: JSON.stringify({ 
+                        click_id: clickId,
+                        value_cents: valueCents 
+                    })
                 });
 
-                const data = await response.json();
-                const pixCode = data.qr_code || data.qr_code_text || data.brcode;
+                if (!generateRes.ok) throw new Error('Falha de comunicação com o banco.');
+                
+                const data = await generateRes.json();
 
-                if (pixCode && data.id) {
-                    currentTransactionId = data.id; 
-                    document.getElementById('pix-code').value = pixCode;
-                    document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(pixCode)}`;
+                // 3. ATUALIZAR INTERFACE
+                if (data.transaction_id && data.qr_code_text) {
+                    currentTransactionId = data.transaction_id; 
+                    document.getElementById('pix-code').value = data.qr_code_text;
+                    
+                    // Utiliza api.qrserver.com para gerar a imagem do QrCode baseado no copia e cola
+                    document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.qr_code_text)}`;
                     openPixModal();
+                } else {
+                    throw new Error('O sistema financeiro não retornou o código PIX completo.');
                 }
             } catch (error) {
+                console.error(error);
                 alert("Erro ao processar o pagamento. Tente novamente em instantes.");
             } finally {
                 btnSpan.innerHTML = originalText;
@@ -503,17 +549,18 @@
             btn.disabled = true;
 
             try {
-                const response = await fetch(`${PUSHINPAY_API_URL}/transactions/${currentTransactionId}`, {
+                // VERIFICAÇÃO DE STATUS COM A HOTTRACK
+                const response = await fetch(`${HOTTRACK_BASE_URL}/pix/status/${currentTransactionId}`, {
                     method: 'GET',
                     headers: { 
-                        'Accept': 'application/json',
-                        'Authorization': `Bearer ${PUSHINPAY_TOKEN}` 
+                        'x-api-key': HOTTRACK_API_KEY 
                     }
                 });
                 
                 const data = await response.json();
 
-                if (data.status === 'paid' || data.status === 'approved') {
+                if (data.status === 'paid') {
+                    // Redireciona para sucesso
                     window.location.href = "https://aprovadopagamentotele.netlify.app";
                 } else {
                     alert("Ainda não identificamos o seu pagamento. O PIX pode levar alguns segundos para ser processado. Tente novamente em instantes!");
@@ -555,13 +602,24 @@
 
         function copyPixCode() {
             const pixCode = document.getElementById('pix-code');
-            pixCode.select();
-            pixCode.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(pixCode.value).then(() => {
-                const msg = document.getElementById('copy-msg');
-                msg.classList.replace('opacity-0', 'opacity-100');
-                setTimeout(() => msg.classList.replace('opacity-100', 'opacity-0'), 2500);
-            });
+            
+            try {
+                navigator.clipboard.writeText(pixCode.value).then(() => {
+                    const msg = document.getElementById('copy-msg');
+                    msg.classList.replace('opacity-0', 'opacity-100');
+                    setTimeout(() => msg.classList.replace('opacity-100', 'opacity-0'), 2500);
+                }).catch(err => {
+                    // Fallback para clipboard
+                    pixCode.select();
+                    document.execCommand('copy');
+                    const msg = document.getElementById('copy-msg');
+                    msg.classList.replace('opacity-0', 'opacity-100');
+                    setTimeout(() => msg.classList.replace('opacity-100', 'opacity-0'), 2500);
+                });
+            } catch (e) {
+                pixCode.select();
+                document.execCommand('copy');
+            }
         }
     </script>
 </body>
