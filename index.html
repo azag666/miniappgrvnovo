@@ -285,7 +285,9 @@
         // CONFIGURAÇÕES HOTTRACK
         const HOTTRACK_API_KEY = 'b8d5ca45-58d0-47be-87b2-367038994c6b';
         const HOTTRACK_BASE_URL = 'https://hot-track.com/api';
-        const CHECKOUT_ID = 'checkout_vitoria';
+        
+        // AVISO IMPORTANTE: Verifique se este ID está exato no painel da HotTrack!
+        const CHECKOUT_ID = 'checkout_vitoria'; 
         
         // Inicialização do SDK do Telegram e dados de Tracking
         const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
@@ -366,7 +368,6 @@
             }, 18000); 
         }
 
-        // --- SISTEMA DE ATUALIZAÇÃO VISUAL DO PACOTE ---
         function updatePackageUI(price) {
             const specs = {
                 19.99: { vids: 70, pics: 30, hide: [], title: "Pacote VIP Completo 🔞", old: "69,90" },
@@ -393,7 +394,6 @@
             });
         }
 
-        // --- SISTEMA DE RETENÇÃO (1 ÚNICO DOWNSELL AGRESSIVO) ---
         function armBackRedirect() {
             for (let i = 0; i < offerCascade.length + 1; i++) {
                 window.history.pushState({ page: 'retention' }, '', window.location.href);
@@ -424,7 +424,6 @@
             document.getElementById('offer-old-price').innerText = `R$ ${oldPrice.toFixed(2).replace('.', ',')}`;
             document.getElementById('offer-new-price').innerText = `R$ ${price.toFixed(2).replace('.', ',')}`;
             
-            // Modal único hiper agressivo (Estilo "Última Chance" em vermelho)
             if (price === 12.00) {
                 titleEl.innerText = "ESPERA AÍ!";
                 titleEl.classList.replace('text-gray-900', 'text-red-600');
@@ -474,8 +473,7 @@
             try {
                 btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX Seguro...';
                 
-                let clickId = ""; // Fallback caso rastreio falhe
-                let debugResolveLog = "Não executado"; // Variável para debug do passo 1
+                let clickId = ""; 
 
                 // 1. TENTATIVA DE CAPTURA DO RASTREIO (Telegram click)
                 try {
@@ -488,22 +486,21 @@
                         })
                     });
 
-                    debugResolveLog = `Status HTTP: ${resolveClickRes.status}`;
-
                     if (resolveClickRes.ok) {
                         const clickData = await resolveClickRes.json();
-                        debugResolveLog += ` | Resposta: ${JSON.stringify(clickData)}`;
+                        
+                        // VERIFICAÇÃO CRUCIAL PARA AVISAR O UTILIZADOR DO ERRO NO PAINEL DELES
+                        if (clickData.valid === false) {
+                            alert(`⚠️ AVISO HOTTRACK:\nOs dados do Telegram não puderam ser validados. Verifique na HotTrack:\n1. Se o Bot Token está configurado.\n2. Se o Checkout ID "${CHECKOUT_ID}" está exato.`);
+                            return; // Pára aqui porque não vai gerar o PIX sem click_id de qualquer maneira.
+                        }
+
                         if (clickData.click_id) {
                             clickId = clickData.click_id;
                         }
-                    } else {
-                        const errTxt = await resolveClickRes.text();
-                        debugResolveLog += ` | Erro API: ${errTxt}`;
-                        console.warn('API de rastreamento falhou. Usando fallback para não perder a venda.');
                     }
                 } catch (trackingError) {
-                    debugResolveLog = `Erro de Rede: ${trackingError.message}`;
-                    console.warn('Falha de rede ao resolver clique. Ignorando.', trackingError);
+                    console.warn('Falha de rede ao resolver clique.', trackingError);
                 }
 
                 // 2. GERAÇÃO DO PIX COM A HOTTRACK
@@ -516,16 +513,15 @@
                         'x-api-key': HOTTRACK_API_KEY
                     },
                     body: JSON.stringify({ 
-                        api_key: HOTTRACK_API_KEY, // Adicionado ao body caso o backend exija aqui
+                        api_key: HOTTRACK_API_KEY, 
                         click_id: clickId,
                         value_cents: valueCents 
                     })
                 });
 
                 if (!generateRes.ok) {
-                    // EXTREMAMENTE IMPORTANTE: Captura a mensagem de erro do servidor
                     const errorTxt = await generateRes.text();
-                    throw new Error(`\n[PASSO 1: RESOLVE CLICK]\n${debugResolveLog}\n\n[PASSO 2: GERAÇÃO PIX]\nStatus ${generateRes.status} | Detalhes: ${errorTxt}`);
+                    throw new Error(`O pagamento não pode ser processado sem os dados da campanha ativos. Verifique as suas configurações.`);
                 }
                 
                 const data = await generateRes.json();
@@ -535,16 +531,13 @@
                     currentTransactionId = data.transaction_id; 
                     document.getElementById('pix-code').value = data.qr_code_text;
                     
-                    // Utiliza api.qrserver.com para gerar a imagem do QrCode baseado no copia e cola
                     document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.qr_code_text)}`;
                     openPixModal();
                 } else {
-                    throw new Error('A API não devolveu o transaction_id ou qr_code_text. Resposta completa: ' + JSON.stringify(data));
+                    throw new Error('A API devolveu dados incompletos.');
                 }
             } catch (error) {
-                console.error(error);
-                // SISTEMA DE DEBUG VISUAL NO TELEGRAM
-                alert("ERRO PARA DEBUG (Mande print disto):\n\n" + error.message);
+                alert(error.message);
             } finally {
                 btnSpan.innerHTML = originalText;
             }
@@ -579,7 +572,7 @@
                     alert("Ainda não identificamos o seu pagamento. O PIX pode levar alguns segundos para ser processado. Tente novamente em instantes!");
                 }
             } catch (error) {
-                alert("ERRO PARA DEBUG: " + error.message);
+                alert("Erro de comunicação: " + error.message);
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
@@ -622,7 +615,6 @@
                     msg.classList.replace('opacity-0', 'opacity-100');
                     setTimeout(() => msg.classList.replace('opacity-100', 'opacity-0'), 2500);
                 }).catch(err => {
-                    // Fallback para clipboard
                     pixCode.select();
                     document.execCommand('copy');
                     const msg = document.getElementById('copy-msg');
