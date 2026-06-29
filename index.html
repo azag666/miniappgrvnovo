@@ -34,6 +34,7 @@
     </div>
 
     <script>
+        const API_URL = 'https://hot-track.com'; // URL base do seu servidor
         const tg = window.Telegram.WebApp;
         tg.ready();
 
@@ -49,25 +50,12 @@
 
         async function initApp() {
             const statusEl = document.getElementById('status');
-            log("A iniciar autenticação...");
-            
-            // Extraindo dados do usuário
             const user = tg.initDataUnsafe?.user;
-            if (user) {
-                // Nota: O Telegram não envia chat_id via MiniApp por segurança.
-                // Usamos o user.id como identificador único.
-                log(`User ID (Telegram ID): ${user.id}`);
-                log(`Nome do Lead: ${user.first_name} ${user.last_name || ''}`);
-                log(`Username: @${user.username || 'N/A'}`);
-                log(`Idioma: ${user.language_code || 'N/A'}`);
-            } else {
-                log("AVISO: Nenhum dado de usuário encontrado no initDataUnsafe.");
-            }
-
+            
+            log("Iniciando conexão com: " + API_URL);
+            
             try {
-                log("A enviar requisição para /api/miniapp/resolve-click...");
-                
-                const response = await fetch('/api/miniapp/resolve-click', {
+                const response = await fetch(`${API_URL}/api/miniapp/resolve-click`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -76,23 +64,19 @@
                     })
                 });
 
-                log(`Status da resposta: ${response.status}`);
                 const data = await response.json();
-                log(`Dados da resposta: ${JSON.stringify(data)}`);
+                log(`Resposta Auth: ${JSON.stringify(data)}`);
 
-                if (data.valid && data.click_id) {
+                if (data.valid) {
                     sessionClickId = data.click_id;
                     statusEl.innerText = "Pronto para gerar seu PIX.";
                     document.getElementById('checkout-form').classList.remove('hidden');
-                    log(`Sucesso! Click ID capturado: ${data.click_id}`);
                 } else {
                     statusEl.innerText = "Erro: Usuário não identificado.";
-                    log("Erro: O servidor retornou 'valid: false' ou click_id ausente.");
                 }
             } catch (err) {
-                statusEl.innerText = "Erro ao conectar ao servidor.";
-                log(`ERRO FATAL DE REDE: ${err.message}`);
-                log("Verifique se o backend está acessível e se não há bloqueio de CORS.");
+                statusEl.innerText = "Erro ao conectar.";
+                log(`ERRO FATAL: ${err.message}`);
             }
         }
 
@@ -100,30 +84,25 @@
             const name = document.getElementById('user-name').value;
             if (!name) return alert("Preencha o nome");
 
-            log("A solicitar geração de PIX...");
             try {
-                const response = await fetch('/api/oferta/generate-pix', {
+                const response = await fetch(`${API_URL}/api/pix/generate`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        checkoutId: 'cko_seu_id',
-                        value_cents: 1000,
                         click_id: sessionClickId,
                         customer: { name: name }
                     })
                 });
 
                 const result = await response.json();
-                log(`Resultado PIX: ${JSON.stringify(result)}`);
-
                 if (result.pix_qrcode) {
                     document.getElementById('pix-code').innerText = result.pix_qrcode;
                     document.getElementById('pix-area').classList.remove('hidden');
                 } else {
-                    log("Erro: PIX não retornado pelo servidor.");
+                    log("Erro: Falha ao gerar PIX.");
                 }
             } catch (err) {
-                log(`ERRO NA GERAÇÃO PIX: ${err.message}`);
+                log(`ERRO PIX: ${err.message}`);
             }
         };
 
