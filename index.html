@@ -285,6 +285,7 @@
         const HOTTRACK_API_URL = 'https://hot-track.com';
         const HOTTRACK_TOKEN = 'b8d5ca45-58d0-47be-87b2-367038994c6b';
         const PRESSEL_ID = 130;
+        const SELLER_ID = 1; // IMPORTANTE: Substitua pelo seu ID de vendedor real na HotTrack, caso contrário não fará o match
         
         let globalClickId = null;
         let clickIdPromise = null; 
@@ -331,14 +332,56 @@
             return /facebookexternalhit|Facebot/i.test(userAgent);
         }
 
+        // --- NOVA FUNÇÃO: Resolução do Click ID via Telegram initData ---
+        async function resolveClickIdFromTelegram() {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+                try {
+                    console.log("🔍 Tentando recuperar click_id pelo initData do Telegram...");
+                    const response = await fetch(`${HOTTRACK_API_URL}/api/miniapp/resolve-click`, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            sellerId: SELLER_ID,
+                            initData: window.Telegram.WebApp.initData
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.valid && data.click_id) {
+                        console.log("✅ [MiniApp] Click ID recuperado com sucesso via initData:", data.click_id);
+                        return data.click_id;
+                    } else {
+                        console.log("⚠️ [MiniApp] initData não retornou um click_id válido ou o usuário é novo. Preparando para gerar um novo...");
+                        return null;
+                    }
+                } catch (e) {
+                    console.error("❌ [MiniApp] Erro ao consultar a rota resolve-click:", e);
+                    return null;
+                }
+            }
+            return null;
+        }
+
         async function performRegistration() {
             try {
-                const urlClickId = getQueryParam('click_id') || getQueryParam('start') || (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.start_param);
+                // 1. Tenta recuperar parâmetros explícitos da URL (fluxo normal do bot)
+                let urlClickId = getQueryParam('click_id') || getQueryParam('start') || (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.start_param);
                 if (urlClickId) {
                     globalClickId = urlClickId;
                     return;
                 }
 
+                // 2. Tenta recuperar via API de autenticação do Telegram WebApp
+                const resolvedTelegramId = await resolveClickIdFromTelegram();
+                if (resolvedTelegramId) {
+                    globalClickId = resolvedTelegramId;
+                    return;
+                }
+
+                // 3. Caso não encontre em nenhum lugar, tenta registrar um novo click
                 const { fbp, fbc } = getFacebookCookies();
                 const kwaiClickId = getKwaiClickId() || getQueryParam('click_id') || getQueryParam('k_click_id');
                 const kwaiCallback = getQueryParam('callback');
@@ -592,7 +635,7 @@
             processCheckout(); 
         }
 
-        // --- INTEGRAÇÃO HOT-TRACK (CORRIGIDA) ---
+        // --- INTEGRAÇÃO HOT-TRACK ---
         async function processCheckout() {
             const btnSpan = document.getElementById('cta-text');
             const originalText = btnSpan.innerHTML;
