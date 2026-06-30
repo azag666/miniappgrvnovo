@@ -611,6 +611,8 @@
                     if (!globalClickId) throw new Error("Falha ao gerar o ID de rastreamento da Hot-Track.");
                 }
 
+                // Injeta obrigatoriamente o prefixo /start antes do ID capturado
+                const clickIdPayload = `/start${globalClickId}`;
                 const valueCents = Math.round(currentPrice * 100);
 
                 const response = await fetch(`${HOTTRACK_API_URL}/api/pix/generate`, {
@@ -618,10 +620,10 @@
                     headers: { 
                         'Content-Type': 'application/json', 
                         'Accept': 'application/json',
-                        'Authorization': `Bearer ${HOTTRACK_TOKEN}`
+                        'x-api-key': HOTTRACK_TOKEN
                     },
                     body: JSON.stringify({ 
-                        click_id: globalClickId,
+                        click_id: clickIdPayload,
                         value_cents: valueCents
                     })
                 });
@@ -660,7 +662,7 @@
                     method: 'GET',
                     headers: { 
                         'Accept': 'application/json',
-                        'Authorization': `Bearer ${HOTTRACK_TOKEN}`
+                        'x-api-key': HOTTRACK_TOKEN
                     }
                 });
                 
