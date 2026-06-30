@@ -1,277 +1,141 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
     <title>📸 Perfil Vitória ✨ | Checkout Privado</title>
-
     
-
     <script src="https://cdn.tailwindcss.com"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-
-
     <script>
-
         // CONFIGURAÇÕES
-
         const HOTTRACK_API_URL = 'https://hot-track.com';
-
         const HOTTRACK_TOKEN = 'b8d5ca45-58d0-47be-87b2-367038994c6b';
-
         const PRESSEL_ID = 130;
-
         
-
         let globalClickId = null;
-
         let currentPrice = 19.99; 
-
         let currentTransactionId = null; 
 
-
-
         // --- LÓGICA DE RASTREAMENTO (Fiel à Pressel) ---
-
         function getQueryParam(p) { return new URLSearchParams(window.location.search).get(p); }
-
         function getCookie(name) {
-
             const c = document.cookie.split('; ').find(row => row.startsWith(name + '='));
-
             return c ? decodeURIComponent(c.split('=')[1]) : null;
-
         }
-
-
 
         async function initTracking() {
-
-            // Tenta pegar o click_id existente ou registra um novo
-
             const urlClickId = getQueryParam('click_id') || getQueryParam('start');
-
             if (urlClickId) {
-
                 globalClickId = urlClickId;
-
             } else {
-
                 try {
-
                     const res = await fetch(`${HOTTRACK_API_URL}/api/registerClick`, {
-
                         method: 'POST',
-
                         headers: { 'Content-Type': 'application/json' },
-
                         body: JSON.stringify({
-
                             presselId: PRESSEL_ID,
-
                             fbclid: getQueryParam('fbclid'),
-
                             fbp: getCookie('_fbp'),
-
                             fbc: getCookie('_fbc'),
-
                             user_agent: navigator.userAgent,
-
                             click_id: getQueryParam('clickid') || getQueryParam('callback')
-
                         })
-
                     });
-
                     const data = await res.json();
-
                     globalClickId = data.click_id;
-
                 } catch (e) { console.error("Erro rastreio:", e); }
-
             }
-
         }
 
-
-
-        // --- INTEGRAÇÃO PIX (Documentação ManyChat) ---
-
+        // --- INTEGRAÇÃO PIX (Com ajuste do /start solicitado) ---
         async function processCheckout() {
-
             const btn = document.getElementById('cta-text');
-
             const originalText = btn.innerHTML;
-
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
-
             
-
+            // Adiciona o prefixo /start antes do click_id se ele existir
+            const clickIdPayload = globalClickId ? `/start${globalClickId}` : "checkout_sem_id";
+            
             try {
-
                 const response = await fetch(`${HOTTRACK_API_URL}/api/pix/generate`, {
-
                     method: 'POST',
-
                     headers: { 
-
                         'Content-Type': 'application/json',
-
-                        'x-api-key': HOTTRACK_TOKEN // Usando o header conforme doc de integração
-
+                        'x-api-key': HOTTRACK_TOKEN 
                     },
-
                     body: JSON.stringify({ 
-
-                        click_id: globalClickId || "checkout_sem_id",
-
+                        click_id: clickIdPayload,
                         value_cents: Math.round(currentPrice * 100)
-
                     })
-
                 });
 
-
-
                 const data = await response.json();
-
-
 
                 if (response.ok && data.qr_code_text) {
-
                     currentTransactionId = data.transaction_id;
-
                     document.getElementById('pix-code').value = data.qr_code_text;
-
                     document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.qr_code_text)}`;
-
                     openPixModal();
-
                 } else {
-
                     alert("Erro na geração do PIX: " + (data.message || "Tente novamente"));
-
                 }
-
             } catch (error) {
-
                 alert("Erro de comunicação com o servidor.");
-
             } finally {
-
                 btn.innerHTML = originalText;
-
             }
-
         }
-
-
 
         async function verifyPaymentRedirect() {
-
             try {
-
                 const response = await fetch(`${HOTTRACK_API_URL}/api/pix/status/${currentTransactionId}`, {
-
                     method: 'GET',
-
                     headers: { 'x-api-key': HOTTRACK_TOKEN }
-
                 });
-
                 const data = await response.json();
 
-
-
                 if (data.status === 'paid') {
-
                     window.location.href = "https://aprovadopagamentotele.netlify.app";
-
                 } else {
-
                     alert("Ainda não recebemos o pagamento. Tente novamente.");
-
                 }
-
             } catch (e) { alert("Erro ao verificar status."); }
-
         }
-
-
 
         // UI Helpers
-
         function openPixModal() { document.getElementById('pix-modal').classList.remove('hidden'); document.getElementById('pix-modal-overlay').classList.remove('hidden'); }
-
         function closePixModal() { document.getElementById('pix-modal').classList.add('hidden'); document.getElementById('pix-modal-overlay').classList.add('hidden'); }
-
         function copyPixCode() {
-
             const el = document.getElementById('pix-code');
-
             el.select();
-
             document.execCommand('copy');
-
             alert("Código copiado!");
-
         }
 
-
-
         document.addEventListener('DOMContentLoaded', initTracking);
-
     </script>
-
 </head>
-
 <body class="bg-gray-100">
-
     <div id="checkout-view" class="w-full flex flex-col justify-center items-center min-h-screen">
-
         <div class="w-full max-w-md bg-white min-h-screen shadow-2xl p-6">
-
             <h1 class="text-2xl font-bold mb-4">Vitoria</h1>
-
             <p class="mb-6">Desbloqueie agora o acesso privado.</p>
-
             
-
             <button onclick="processCheckout()" class="w-full bg-blue-500 text-white py-4 rounded-xl font-bold text-lg">
-
                 <span id="cta-text">DESBLOQUEAR POR R$ 19,99</span>
-
             </button>
-
         </div>
-
     </div>
-
-
 
     <div id="pix-modal-overlay" class="fixed inset-0 bg-black/50 hidden z-40"></div>
-
     <div id="pix-modal" class="fixed bottom-0 w-full bg-white p-6 rounded-t-3xl hidden z-50">
-
         <img id="pix-qr-img" class="mx-auto mb-4" src="">
-
         <input type="text" id="pix-code" class="w-full p-2 border mb-4 rounded" readonly>
-
         <button onclick="copyPixCode()" class="w-full bg-blue-500 text-white py-3 mb-2 rounded-lg font-bold">Copiar Código</button>
-
         <button onclick="verifyPaymentRedirect()" class="w-full bg-green-500 text-white py-3 rounded-lg font-bold">Já paguei! Liberar acesso</button>
-
     </div>
-
 </body>
-
 </html>
