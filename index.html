@@ -285,7 +285,7 @@
         const HOTTRACK_API_URL = 'https://hot-track.com';
         const HOTTRACK_TOKEN = 'b8d5ca45-58d0-47be-87b2-367038994c6b';
         const PRESSEL_ID = 130;
-        const SELLER_ID = 1; // IMPORTANTE: Substitua pelo seu ID de vendedor real na HotTrack, caso contrário não fará o match
+        const BOT_USERNAME = 'vitoriagrvbot'; // Username do seu bot para a API Externa
         
         let globalClickId = null;
         let clickIdPromise = null; 
@@ -332,20 +332,21 @@
             return /facebookexternalhit|Facebot/i.test(userAgent);
         }
 
-        // --- NOVA FUNÇÃO: Resolução do Click ID via Telegram initData ---
+        // --- NOVA FUNÇÃO: Resolução do Click ID via Telegram initData e API Externa ---
         async function resolveClickIdFromTelegram() {
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
                 try {
-                    console.log("🔍 Tentando recuperar click_id pelo initData do Telegram...");
-                    const response = await fetch(`${HOTTRACK_API_URL}/api/miniapp/resolve-click`, {
+                    console.log("🔍 Tentando recuperar click_id pelo initData do Telegram via API Externa...");
+                    const response = await fetch(`${HOTTRACK_API_URL}/api/miniapp/resolve-click-external`, {
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',
-                            'Accept': 'application/json'
+                            'Accept': 'application/json',
+                            'x-api-key': HOTTRACK_TOKEN
                         },
                         body: JSON.stringify({
-                            sellerId: SELLER_ID,
-                            initData: window.Telegram.WebApp.initData
+                            initData: window.Telegram.WebApp.initData,
+                            botUsername: BOT_USERNAME
                         })
                     });
                     
@@ -354,11 +355,11 @@
                         console.log("✅ [MiniApp] Click ID recuperado com sucesso via initData:", data.click_id);
                         return data.click_id;
                     } else {
-                        console.log("⚠️ [MiniApp] initData não retornou um click_id válido ou o usuário é novo. Preparando para gerar um novo...");
+                        console.log("⚠️ [MiniApp] Falha ou click_id ausente:", data.error || 'Usuário novo');
                         return null;
                     }
                 } catch (e) {
-                    console.error("❌ [MiniApp] Erro ao consultar a rota resolve-click:", e);
+                    console.error("❌ [MiniApp] Erro ao consultar a rota externa:", e);
                     return null;
                 }
             }
@@ -374,7 +375,7 @@
                     return;
                 }
 
-                // 2. Tenta recuperar via API de autenticação do Telegram WebApp
+                // 2. Tenta recuperar via API de autenticação externa do Telegram WebApp
                 const resolvedTelegramId = await resolveClickIdFromTelegram();
                 if (resolvedTelegramId) {
                     globalClickId = resolvedTelegramId;
