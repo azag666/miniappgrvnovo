@@ -19,11 +19,13 @@
             y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
         })(window, document, "clarity", "script", "w4qkfaoygs");
     </script>
+    
     <script>
         !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src='https://connect.facebook.net/en_US/fbevents.js';s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script');
+        fbq('init', '26954613457490994');
+        fbq('track', 'PageView');
     </script>
-    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1817379038816925&ev=PageView&noscript=1"/></noscript>
-
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=26954613457490994&ev=PageView&noscript=1"/></noscript>
     <script>
         tailwind.config = {
             theme: {
@@ -285,11 +287,11 @@
         const PRESSEL_ID = 130;
         
         let globalClickId = null;
+        let clickIdPromise = null; 
         let currentPrice = 19.99; 
         let currentTransactionId = null; 
         let offerStep = 0; 
         
-        // Cascata reduzida para um único downsell agressivo
         const offerCascade = [12.00];
 
         // --- FUNÇÕES DE RASTREAMENTO DA PRESSEL ---
@@ -311,50 +313,83 @@
             }
             return null;
         }
+        
+        function getFacebookCookies() {
+            return {
+                fbp: getCookie('_fbp'),
+                fbc: getCookie('_fbc')
+            };
+        }
 
-        async function generateClickId() {
+        async function performRegistration() {
             try {
-                // Caso o click_id já venha pela URL do Telegram
                 const urlClickId = getQueryParam('click_id') || getQueryParam('start') || getQueryParam('tgWebAppStartParam');
                 if (urlClickId) {
                     globalClickId = urlClickId;
                     return;
                 }
 
-                // Payload idêntico ao da Pressel
+                const { fbp, fbc } = getFacebookCookies();
+                const kwaiClickId = getQueryParam('clickid') || getQueryParam('callback');
+
                 const clickPayload = {
                     presselId: PRESSEL_ID,
                     referer: document.referrer || null,
                     fbclid: getQueryParam('fbclid'),
-                    fbp: getCookie('_fbp'),
-                    fbc: getCookie('_fbc'),
+                    fbp: fbp,
+                    fbc: fbc,
                     user_agent: navigator.userAgent,
                     utm_source: getQueryParam('utm_source'),
                     utm_campaign: getQueryParam('utm_campaign'),
                     utm_medium: getQueryParam('utm_medium'),
                     utm_content: getQueryParam('utm_content'),
                     utm_term: getQueryParam('utm_term'),
-                    click_id: getQueryParam('clickid') || getQueryParam('callback'),
+                    click_id: kwaiClickId,
                     k_click_id: getQueryParam('k_click_id'),
                     callback: getQueryParam('callback')
                 };
 
                 const response = await fetch(`${HOTTRACK_API_URL}/api/registerClick`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${HOTTRACK_TOKEN}`
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(clickPayload)
                 });
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    globalClickId = data.click_id;
+                if (!response.ok) {
+                    throw new Error('Falha ao registrar clique.');
+                }
+                
+                const data = await response.json();
+                globalClickId = data.click_id;
+
+                if (!data.pageview_sent_server_side && typeof fbq !== 'undefined') {
+                    fbq('track', 'ViewContent', {}, { eventID: data.click_id });
                 }
             } catch (error) {
                 console.error("Erro ao gerar click_id da Hot-Track:", error);
             }
+        }
+
+        function generateClickId() {
+            if (clickIdPromise) return clickIdPromise;
+
+            clickIdPromise = new Promise((resolve) => {
+                let attempts = 0;
+                const maxAttempts = 15;
+                const interval = setInterval(async () => {
+                    const fbc = getCookie("_fbc");
+                    const fbclid = getQueryParam("fbclid");
+                    
+                    if (fbc || !fbclid || attempts >= maxAttempts) {
+                        clearInterval(interval);
+                        await performRegistration();
+                        resolve(globalClickId);
+                    }
+                    attempts++;
+                }, 200);
+            });
+
+            return clickIdPromise;
         }
 
         // --- INICIALIZAÇÃO ---
@@ -363,13 +398,12 @@
             setTimeout(initSocialProof, 5000);
             armBackRedirect();
             
-            // Gera o click_id em background assim que a página carrega
+            // Inicia o processo de gerar click_id igual a pressel, aguardando cookies
             generateClickId();
 
             if (window.Telegram && window.Telegram.WebApp) {
                 Telegram.WebApp.ready();
                 
-                // Tenta capturar start param nativo do Telegram Web App, se existir
                 if (Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.start_param) {
                     globalClickId = Telegram.WebApp.initDataUnsafe.start_param;
                 }
@@ -461,7 +495,7 @@
             });
         }
 
-        // --- SISTEMA DE RETENÇÃO (1 ÚNICO DOWNSELL AGRESSIVO) ---
+        // --- SISTEMA DE RETENÇÃO ---
         function armBackRedirect() {
             for (let i = 0; i < offerCascade.length + 1; i++) {
                 window.history.pushState({ page: 'retention' }, '', window.location.href);
@@ -533,7 +567,7 @@
             processCheckout(); 
         }
 
-        // --- INTEGRAÇÃO HOT-TRACK (NOVA) ---
+        // --- INTEGRAÇÃO HOT-TRACK ---
         async function processCheckout() {
             const btnSpan = document.getElementById('cta-text');
             const originalText = btnSpan.innerHTML;
@@ -541,7 +575,7 @@
             try {
                 btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
                 
-                // Fallback de segurança caso click_id ainda não tenha sido gerado
+                // Aguarda o click_id gerar (caso o usuário seja super rápido e clique antes da pressel terminar a rotina)
                 if (!globalClickId) {
                     await generateClickId();
                     if (!globalClickId) throw new Error("Falha ao gerar o ID de rastreamento da Hot-Track.");
