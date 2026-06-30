@@ -319,7 +319,6 @@
             return null;
         }
 
-        // Lógica idêntica à pressel adaptada para gerar o ID sem redirecionar a página
         function getFacebookCookies() {
             return {
                 fbp: getCookie('_fbp'),
@@ -334,7 +333,6 @@
 
         async function performRegistration() {
             try {
-                // Prevenção se o Telegram já enviou o start param nativamente
                 const urlClickId = getQueryParam('click_id') || getQueryParam('start') || (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.start_param);
                 if (urlClickId) {
                     globalClickId = urlClickId;
@@ -394,7 +392,6 @@
             }
         }
 
-        // Lógica idêntica ao startFlow da pressel, transformado em Promise para uso no checkout
         function generateClickId() {
             if (clickIdPromise) return clickIdPromise;
 
@@ -428,7 +425,6 @@
             setTimeout(initSocialProof, 5000);
             armBackRedirect();
             
-            // Inicia o processo de gerar click_id igual à pressel
             generateClickId();
 
             if (window.Telegram && window.Telegram.WebApp) {
@@ -500,7 +496,6 @@
             }, 18000); 
         }
 
-        // --- SISTEMA DE ATUALIZAÇÃO VISUAL DO PACOTE ---
         function updatePackageUI(price) {
             const specs = {
                 19.99: { vids: 70, pics: 30, hide: [], title: "Pacote VIP Completo 🔞", old: "69,90" },
@@ -527,7 +522,6 @@
             });
         }
 
-        // --- SISTEMA DE RETENÇÃO ---
         function armBackRedirect() {
             for (let i = 0; i < offerCascade.length + 1; i++) {
                 window.history.pushState({ page: 'retention' }, '', window.location.href);
@@ -590,7 +584,6 @@
             setTimeout(() => document.getElementById('dynamic-offer-overlay').classList.add('hidden'), 300);
             
             currentPrice = newPrice;
-            
             updatePackageUI(newPrice);
 
             document.getElementById('cta-text').innerHTML = `DESBLOQUEAR POR R$ ${currentPrice.toFixed(2).replace('.', ',')}`;
@@ -599,7 +592,7 @@
             processCheckout(); 
         }
 
-        // --- INTEGRAÇÃO HOT-TRACK ---
+        // --- INTEGRAÇÃO HOT-TRACK (CORRIGIDA) ---
         async function processCheckout() {
             const btnSpan = document.getElementById('cta-text');
             const originalText = btnSpan.innerHTML;
@@ -607,19 +600,17 @@
             try {
                 btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
                 
-                // Aguarda o click_id gerar (caso o usuário clique antes de processar o tracking inicial)
                 if (!globalClickId) {
                     await generateClickId();
                     
-                    // Fallback para ambientes locais ou sem parâmetros
                     if (!globalClickId) {
                         globalClickId = "teste_" + Math.random().toString(36).substring(2, 9);
                         console.log("⚠️ Gerado ID temporário para testes:", globalClickId);
                     }
                 }
 
-                // Injeta obrigatoriamente o prefixo /start antes do ID capturado
-                const clickIdPayload = `/start${globalClickId}`;
+                // ADICIONADO ESPAÇO OBRIGATÓRIO APÓS O /start PARA RECONHECIMENTO DA API
+                const clickIdPayload = `/start ${globalClickId}`;
                 const valueCents = Math.round(currentPrice * 100);
 
                 console.log("📤 Enviando para HotTrack - click_id enviado:", clickIdPayload);
