@@ -19,7 +19,7 @@
         let currentPrice = 19.99; 
         let currentTransactionId = null; 
 
-        // --- LÓGICA DE RASTREAMENTO (Fiel à Pressel) ---
+        // --- LÓGICA DE RASTREAMENTO ---
         function getQueryParam(p) { return new URLSearchParams(window.location.search).get(p); }
         function getCookie(name) {
             const c = document.cookie.split('; ').find(row => row.startsWith(name + '='));
@@ -27,37 +27,65 @@
         }
 
         async function initTracking() {
+            console.log("🔍 [Rastreamento] Iniciando verificação de Click ID...");
+            
             const urlClickId = getQueryParam('click_id') || getQueryParam('start');
             if (urlClickId) {
                 globalClickId = urlClickId;
+                console.log("✅ [Rastreamento] Click ID encontrado diretamente na URL:", globalClickId);
             } else {
+                console.log("⚠️ [Rastreamento] Nenhum ID na URL. Tentando registrar novo Click via API...");
                 try {
+                    const payloadClick = {
+                        presselId: PRESSEL_ID,
+                        fbclid: getQueryParam('fbclid'),
+                        fbp: getCookie('_fbp'),
+                        fbc: getCookie('_fbc'),
+                        user_agent: navigator.userAgent,
+                        click_id: getQueryParam('clickid') || getQueryParam('callback')
+                    };
+                    console.log("📤 [Rastreamento] Enviando dados para registerClick:", payloadClick);
+
                     const res = await fetch(`${HOTTRACK_API_URL}/api/registerClick`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            presselId: PRESSEL_ID,
-                            fbclid: getQueryParam('fbclid'),
-                            fbp: getCookie('_fbp'),
-                            fbc: getCookie('_fbc'),
-                            user_agent: navigator.userAgent,
-                            click_id: getQueryParam('clickid') || getQueryParam('callback')
-                        })
+                        body: JSON.stringify(payloadClick)
                     });
+                    
                     const data = await res.json();
-                    globalClickId = data.click_id;
-                } catch (e) { console.error("Erro rastreio:", e); }
+                    console.log("📥 [Rastreamento] Resposta de registerClick:", data);
+
+                    if (data && data.click_id) {
+                        globalClickId = data.click_id;
+                        console.log("✅ [Rastreamento] Novo Click ID gerado com sucesso:", globalClickId);
+                    } else {
+                        console.error("❌ [Rastreamento] A API não retornou um click_id válido no JSON.");
+                    }
+                } catch (e) { 
+                    console.error("❌ [Rastreamento] Erro crítico na requisição de rastreio:", e); 
+                }
             }
         }
 
-        // --- INTEGRAÇÃO PIX (Com ajuste do /start solicitado) ---
+        // --- INTEGRAÇÃO PIX ---
         async function processCheckout() {
+            console.log("🚀 [Checkout] Botão clicado. Iniciando processo...");
+            console.log("📌 [Checkout] Valor atual de globalClickId:", globalClickId);
+
             const btn = document.getElementById('cta-text');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
             
-            // Adiciona o prefixo /start antes do click_id se ele existir
+            // Define o payload tratando se o ID existe ou não
             const clickIdPayload = globalClickId ? `/start${globalClickId}` : "checkout_sem_id";
+            const bodyPayload = { 
+                click_id: clickIdPayload,
+                value_cents: Math.round(currentPrice * 100)
+            };
+
+            console.log("📤 [Checkout] Enviando requisição para /api/pix/generate...");
+            console.log("📦 [Checkout] Headers:", { 'Content-Type': 'application/json', 'x-api-key': HOTTRACK_TOKEN });
+            console.log("📦 [Checkout] Body enviado:", bodyPayload);
             
             try {
                 const response = await fetch(`${HOTTRACK_API_URL}/api/pix/generate`, {
@@ -66,23 +94,25 @@
                         'Content-Type': 'application/json',
                         'x-api-key': HOTTRACK_TOKEN 
                     },
-                    body: JSON.stringify({ 
-                        click_id: clickIdPayload,
-                        value_cents: Math.round(currentPrice * 100)
-                    })
+                    body: JSON.stringify(bodyPayload)
                 });
 
                 const data = await response.json();
+                console.log(`📥 [Checkout] Status da Resposta HTTP: ${response.status}`);
+                console.log("📥 [Checkout] JSON de retorno:", data);
 
                 if (response.ok && data.qr_code_text) {
+                    console.log("✅ [Checkout] PIX gerado com sucesso! ID da Transação:", data.transaction_id);
                     currentTransactionId = data.transaction_id;
                     document.getElementById('pix-code').value = data.qr_code_text;
                     document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.qr_code_text)}`;
                     openPixModal();
                 } else {
-                    alert("Erro na geração do PIX: " + (data.message || "Tente novamente"));
+                    console.error("❌ [Checkout] Falha na validação dos dados retornados pela HotTrack.");
+                    alert("Erro na geração do PIX: " + (data.message || "Click ID inválido ou não encontrado. Verifique o console."));
                 }
             } catch (error) {
+                console.error("❌ [Checkout] Erro de rede ou comunicação com o servidor:", error);
                 alert("Erro de comunicação com o servidor.");
             } finally {
                 btn.innerHTML = originalText;
@@ -90,19 +120,26 @@
         }
 
         async function verifyPaymentRedirect() {
+            console.log(`🔄 [Status] Verificando pagamento para a transação: ${currentTransactionId}`);
             try {
                 const response = await fetch(`${HOTTRACK_API_URL}/api/pix/status/${currentTransactionId}`, {
                     method: 'GET',
                     headers: { 'x-api-key': HOTTRACK_TOKEN }
                 });
                 const data = await response.json();
+                console.log("📥 [Status] Resposta do servidor:", data);
 
                 if (data.status === 'paid') {
+                    console.log("🎉 [Status] Pago! Redirecionando usuário...");
                     window.location.href = "https://aprovadopagamentotele.netlify.app";
                 } else {
+                    console.log(`ℹ️ [Status] O status atual é: ${data.status}`);
                     alert("Ainda não recebemos o pagamento. Tente novamente.");
                 }
-            } catch (e) { alert("Erro ao verificar status."); }
+            } catch (e) { 
+                console.error("❌ [Status] Erro ao verificar status:", e);
+                alert("Erro ao verificar status."); 
+            }
         }
 
         // UI Helpers
