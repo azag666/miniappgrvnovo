@@ -300,6 +300,11 @@
             return urlParams.get(param);
         }
 
+        function getKwaiClickId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('clickid') || urlParams.get('callback');
+        }
+
         function getCookie(name) {
             const cookies = document.cookie.split('; ');
             for (const cookie of cookies) {
@@ -326,17 +331,19 @@
             return /facebookexternalhit|Facebot/i.test(userAgent);
         }
 
-        // Lógica idêntica à pressel: registerAndRedirect adaptada
+        // Lógica idêntica à pressel adaptada para gerar o ID sem redirecionar a página
         async function performRegistration() {
             try {
-                const urlClickId = getQueryParam('click_id') || getQueryParam('start') || getQueryParam('tgWebAppStartParam');
+                // Prevenção se o Telegram já enviou o start param nativamente
+                const urlClickId = getQueryParam('click_id') || getQueryParam('start') || (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.start_param);
                 if (urlClickId) {
                     globalClickId = urlClickId;
                     return;
                 }
 
                 const { fbp, fbc } = getFacebookCookies();
-                const kwaiClickId = getQueryParam('clickid') || getQueryParam('callback');
+                const kwaiClickId = getKwaiClickId() || getQueryParam('click_id') || getQueryParam('k_click_id');
+                const kwaiCallback = getQueryParam('callback');
                 
                 const clickPayload = {
                     presselId: PRESSEL_ID,
@@ -352,8 +359,15 @@
                     utm_term: getQueryParam('utm_term'),
                     click_id: kwaiClickId,
                     k_click_id: getQueryParam('k_click_id'),
-                    callback: getQueryParam('callback')
+                    callback: kwaiCallback
                 };
+
+                if (kwaiClickId && typeof kwaiq !== 'undefined' && false) {
+                    kwaiq('track', 'ViewContent', {
+                        click_id: kwaiClickId
+                    });
+                    console.log('Evento ViewContent do Kwai disparado com click_id:', kwaiClickId);
+                }
 
                 const response = await fetch(`${HOTTRACK_API_URL}/api/registerClick`, {
                     method: 'POST',
@@ -371,13 +385,16 @@
 
                 if (!data.pageview_sent_server_side && typeof fbq !== 'undefined' && true) {
                     fbq('track', 'ViewContent', {}, { eventID: data.click_id });
+                    console.log('Evento ViewContent disparado com eventID:', data.click_id);
+                } else if (data.pageview_sent_server_side) {
+                    console.log('Evento PageView já foi enviado pelo servidor. Pulando envio no frontend.');
                 }
             } catch (error) {
                 console.error("Erro na lógica de registro:", error);
             }
         }
 
-        // Lógica idêntica à pressel: startFlow adaptada para Promise
+        // Lógica idêntica ao startFlow da pressel, transformado em Promise para uso no checkout
         function generateClickId() {
             if (clickIdPromise) return clickIdPromise;
 
@@ -411,7 +428,7 @@
             setTimeout(initSocialProof, 5000);
             armBackRedirect();
             
-            // Inicia o processo de gerar click_id igual à pressel (aguardando cookies)
+            // Inicia o processo de gerar click_id igual à pressel
             generateClickId();
 
             if (window.Telegram && window.Telegram.WebApp) {
@@ -588,7 +605,7 @@
             try {
                 btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
                 
-                // Aguarda o click_id gerar (caso o usuário seja rápido e clique antes da promessa terminar)
+                // Aguarda o click_id gerar (caso o usuário seja rápido e clique antes do polling terminar)
                 if (!globalClickId) {
                     await generateClickId();
                     if (!globalClickId) throw new Error("Falha ao gerar o ID de rastreamento da Hot-Track.");
