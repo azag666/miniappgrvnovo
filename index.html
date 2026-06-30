@@ -7,7 +7,6 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <script>
         const HOTTRACK_API_URL = 'https://hot-track.com';
@@ -16,13 +15,16 @@
         
         let globalClickId = null;
 
-        // 1. CAPTURA O CLICK_ID (Prioriza o /start do Telegram)
+        // 1. CAPTURA E REGISTRO DO CLICK_ID
         async function initTracking() {
             const params = new URLSearchParams(window.location.search);
-            // Captura o 'start' do Telegram ou o click_id da URL
-            globalClickId = params.get('start') || params.get('click_id') || params.get('clickid') || params.get('callback');
+            // Captura o ID e aplica o prefixo /start conforme exigido
+            let rawId = params.get('start') || params.get('click_id') || params.get('clickid') || "lead_padrao";
             
-            console.log("Tentando registrar Click ID:", globalClickId);
+            // Garante que o ID tenha o formato /start se não tiver
+            globalClickId = rawId.startsWith('/start ') ? rawId : `/start ${rawId}`;
+            
+            console.log("Registrando Click ID:", globalClickId);
             
             try {
                 const res = await fetch(`${HOTTRACK_API_URL}/api/registerClick`, {
@@ -30,18 +32,21 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         presselId: PRESSEL_ID,
-                        click_id: globalClickId || "checkout_sem_id"
+                        click_id: globalClickId
                     })
                 });
                 const data = await res.json();
-                if(data.click_id) globalClickId = data.click_id;
-                console.log("Click ID final registrado:", globalClickId);
-            } catch (e) { console.error("Erro registro:", e); }
+                console.log("Resposta registro:", data);
+            } catch (e) { console.error("Erro no registro do clique:", e); }
         }
 
-        // 2. GERAR PIX (Conforme documentação: Header x-api-key)
+        // 2. PROCESSO DE CHECKOUT
         async function processCheckout() {
+            // Garante que o registro ocorreu
+            if (!globalClickId) await initTracking();
+
             const btn = document.getElementById('cta-text');
+            const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
             
             try {
@@ -49,10 +54,10 @@
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'x-api-key': HOTTRACK_TOKEN // Header obrigatório
+                        'x-api-key': HOTTRACK_TOKEN 
                     },
                     body: JSON.stringify({ 
-                        click_id: globalClickId || "checkout_sem_id", // Garantia de envio
+                        click_id: globalClickId, // Agora enviado com /start
                         value_cents: 1999
                     })
                 });
@@ -63,25 +68,40 @@
                     window.currentTransactionId = data.transaction_id;
                     document.getElementById('pix-code').value = data.qr_code_text;
                     document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.qr_code_text)}`;
-                    document.getElementById('pix-modal').classList.remove('hidden');
-                    document.getElementById('pix-modal-overlay').classList.remove('hidden');
+                    openPixModal();
                 } else {
-                    alert("Erro API: " + (data.message || "Verifique o Click ID"));
+                    alert("Erro API: " + (data.message || "Click ID não encontrado."));
                 }
-            } catch (e) { alert("Erro de comunicação."); }
-            btn.innerHTML = "DESBLOQUEAR POR R$ 19,99";
+            } catch (error) {
+                alert("Erro de comunicação com o servidor.");
+            } finally {
+                btn.innerHTML = originalText;
+            }
         }
 
-        // 3. VERIFICAR STATUS
-        async function checkStatus() {
-            const response = await fetch(`${HOTTRACK_API_URL}/api/pix/status/${window.currentTransactionId}`, {
-                method: 'GET',
-                headers: { 'x-api-key': HOTTRACK_TOKEN }
-            });
-            const data = await response.json();
-            if (data.status === 'paid') window.location.href = "https://aprovadopagamentotele.netlify.app";
-            else alert("Pagamento ainda não identificado.");
+        // 3. VERIFICAÇÃO
+        async function verifyPaymentRedirect() {
+            if (!window.currentTransactionId) return alert("Gere um PIX primeiro.");
+            
+            try {
+                const response = await fetch(`${HOTTRACK_API_URL}/api/pix/status/${window.currentTransactionId}`, {
+                    method: 'GET',
+                    headers: { 'x-api-key': HOTTRACK_TOKEN }
+                });
+                const data = await response.json();
+
+                if (data.status === 'paid') {
+                    window.location.href = "https://aprovadopagamentotele.netlify.app";
+                } else {
+                    alert("Pagamento ainda não confirmado. Tente novamente.");
+                }
+            } catch (e) { alert("Erro ao verificar."); }
         }
+
+        // UI Helpers
+        function openPixModal() { document.getElementById('pix-modal').classList.remove('hidden'); document.getElementById('pix-modal-overlay').classList.remove('hidden'); }
+        function closePixModal() { document.getElementById('pix-modal').classList.add('hidden'); document.getElementById('pix-modal-overlay').classList.add('hidden'); }
+        function copyPixCode() { const el = document.getElementById('pix-code'); el.select(); document.execCommand('copy'); alert("Código copiado!"); }
 
         document.addEventListener('DOMContentLoaded', initTracking);
     </script>
@@ -89,17 +109,18 @@
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
     <div class="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl text-center">
         <h1 class="text-2xl font-bold mb-4">Vitoria</h1>
-        <button onclick="processCheckout()" class="w-full bg-blue-500 text-white py-4 rounded-xl font-bold text-lg">
+        <p class="mb-6 text-gray-600">Desbloqueie o acesso privado com PIX automático.</p>
+        <button onclick="processCheckout()" class="w-full bg-blue-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-600 transition">
             <span id="cta-text">DESBLOQUEAR POR R$ 19,99</span>
         </button>
     </div>
 
-    <div id="pix-modal-overlay" class="fixed inset-0 bg-black/50 hidden"></div>
-    <div id="pix-modal" class="fixed bottom-0 w-full bg-white p-6 rounded-t-3xl hidden">
-        <img id="pix-qr-img" class="mx-auto mb-4" src="">
-        <input type="text" id="pix-code" class="w-full p-2 border mb-4 rounded" readonly>
-        <button onclick="document.execCommand('copy')" class="w-full bg-blue-500 text-white py-3 mb-2 rounded-lg font-bold">Copiar Código</button>
-        <button onclick="checkStatus()" class="w-full bg-green-500 text-white py-3 rounded-lg font-bold">Já paguei! Liberar</button>
+    <div id="pix-modal-overlay" class="fixed inset-0 bg-black/50 hidden z-40"></div>
+    <div id="pix-modal" class="fixed bottom-0 w-full bg-white p-6 rounded-t-3xl hidden z-50">
+        <img id="pix-qr-img" class="mx-auto mb-4 border p-2" src="">
+        <input type="text" id="pix-code" class="w-full p-2 border mb-4 rounded bg-gray-50" readonly>
+        <button onclick="copyPixCode()" class="w-full bg-blue-500 text-white py-3 mb-2 rounded-lg font-bold">Copiar Código</button>
+        <button onclick="verifyPaymentRedirect()" class="w-full bg-green-500 text-white py-3 rounded-lg font-bold">Já paguei! Liberar acesso</button>
     </div>
 </body>
 </html>
