@@ -7,70 +7,77 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <script>
+        // CONFIGURAÇÕES
         const HOTTRACK_API_URL = 'https://hot-track.com';
         const HOTTRACK_TOKEN = 'b8d5ca45-58d0-47be-87b2-367038994c6b';
         const PRESSEL_ID = 130;
         
         let globalClickId = null;
+        let currentPrice = 19.99; 
+        let currentTransactionId = null; 
 
-        // 1. CAPTURA E REGISTRO DO CLICK_ID
+        // --- LÓGICA DE RASTREAMENTO (Fiel à Pressel) ---
+        function getQueryParam(p) { return new URLSearchParams(window.location.search).get(p); }
+        
         async function initTracking() {
-            const params = new URLSearchParams(window.location.search);
-            // Captura o ID e aplica o prefixo /start conforme exigido
-            let rawId = params.get('start') || params.get('click_id') || params.get('clickid') || "lead_padrao";
+            // Captura o ID da URL (priorizando o 'start' que vem do Telegram)
+            const rawId = getQueryParam('start') || getQueryParam('click_id') || getQueryParam('clickid');
             
-            // Garante que o ID tenha o formato /start se não tiver
-            globalClickId = rawId.startsWith('/start ') ? rawId : `/start ${rawId}`;
-            
-            console.log("Registrando Click ID:", globalClickId);
-            
+            if (rawId) {
+                // Aplica o formato /start conforme solicitado
+                globalClickId = rawId.startsWith('/start') ? rawId : `/start ${rawId}`;
+            }
+
             try {
                 const res = await fetch(`${HOTTRACK_API_URL}/api/registerClick`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         presselId: PRESSEL_ID,
-                        click_id: globalClickId
+                        click_id: globalClickId || "lead_padrao"
                     })
                 });
                 const data = await res.json();
-                console.log("Resposta registro:", data);
-            } catch (e) { console.error("Erro no registro do clique:", e); }
+                // Se a API retornar um ID específico, usamos ele
+                if (data.click_id) globalClickId = data.click_id;
+            } catch (e) { console.error("Erro rastreio:", e); }
         }
 
-        // 2. PROCESSO DE CHECKOUT
+        // --- INTEGRAÇÃO PIX (Com prefixo /start) ---
         async function processCheckout() {
-            // Garante que o registro ocorreu
-            if (!globalClickId) await initTracking();
-
             const btn = document.getElementById('cta-text');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
             
+            // Garantia: se por acaso não tiver sido registrado, tenta agora
+            if (!globalClickId) await initTracking();
+
             try {
                 const response = await fetch(`${HOTTRACK_API_URL}/api/pix/generate`, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'x-api-key': HOTTRACK_TOKEN 
+                        'x-api-key': HOTTRACK_TOKEN
                     },
                     body: JSON.stringify({ 
-                        click_id: globalClickId, // Agora enviado com /start
-                        value_cents: 1999
+                        // Enviando o click_id já com o prefixo /start
+                        click_id: globalClickId || "/start lead_padrao",
+                        value_cents: Math.round(currentPrice * 100)
                     })
                 });
 
                 const data = await response.json();
 
                 if (response.ok && data.qr_code_text) {
-                    window.currentTransactionId = data.transaction_id;
+                    currentTransactionId = data.transaction_id;
                     document.getElementById('pix-code').value = data.qr_code_text;
                     document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.qr_code_text)}`;
                     openPixModal();
                 } else {
-                    alert("Erro API: " + (data.message || "Click ID não encontrado."));
+                    alert("Erro na geração do PIX: " + (data.message || "Verifique o Click ID"));
                 }
             } catch (error) {
                 alert("Erro de comunicação com o servidor.");
@@ -79,12 +86,11 @@
             }
         }
 
-        // 3. VERIFICAÇÃO
+        // --- VERIFICAÇÃO DE STATUS ---
         async function verifyPaymentRedirect() {
-            if (!window.currentTransactionId) return alert("Gere um PIX primeiro.");
-            
+            if (!currentTransactionId) return;
             try {
-                const response = await fetch(`${HOTTRACK_API_URL}/api/pix/status/${window.currentTransactionId}`, {
+                const response = await fetch(`${HOTTRACK_API_URL}/api/pix/status/${currentTransactionId}`, {
                     method: 'GET',
                     headers: { 'x-api-key': HOTTRACK_TOKEN }
                 });
@@ -93,26 +99,34 @@
                 if (data.status === 'paid') {
                     window.location.href = "https://aprovadopagamentotele.netlify.app";
                 } else {
-                    alert("Pagamento ainda não confirmado. Tente novamente.");
+                    alert("Ainda não recebemos o pagamento.");
                 }
-            } catch (e) { alert("Erro ao verificar."); }
+            } catch (e) { alert("Erro ao verificar status."); }
         }
 
         // UI Helpers
         function openPixModal() { document.getElementById('pix-modal').classList.remove('hidden'); document.getElementById('pix-modal-overlay').classList.remove('hidden'); }
         function closePixModal() { document.getElementById('pix-modal').classList.add('hidden'); document.getElementById('pix-modal-overlay').classList.add('hidden'); }
-        function copyPixCode() { const el = document.getElementById('pix-code'); el.select(); document.execCommand('copy'); alert("Código copiado!"); }
+        function copyPixCode() {
+            const el = document.getElementById('pix-code');
+            el.select();
+            document.execCommand('copy');
+            alert("Código copiado!");
+        }
 
         document.addEventListener('DOMContentLoaded', initTracking);
     </script>
 </head>
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
-    <div class="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl text-center">
-        <h1 class="text-2xl font-bold mb-4">Vitoria</h1>
-        <p class="mb-6 text-gray-600">Desbloqueie o acesso privado com PIX automático.</p>
-        <button onclick="processCheckout()" class="w-full bg-blue-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-600 transition">
-            <span id="cta-text">DESBLOQUEAR POR R$ 19,99</span>
-        </button>
+<body class="bg-gray-100">
+    <div id="checkout-view" class="w-full flex flex-col justify-center items-center min-h-screen">
+        <div class="w-full max-w-md bg-white min-h-screen shadow-2xl p-6">
+            <h1 class="text-2xl font-bold mb-4">Vitoria</h1>
+            <p class="mb-6 text-gray-600">Desbloqueie agora o acesso privado.</p>
+            
+            <button onclick="processCheckout()" class="w-full bg-blue-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-600 transition">
+                <span id="cta-text">DESBLOQUEAR POR R$ 19,99</span>
+            </button>
+        </div>
     </div>
 
     <div id="pix-modal-overlay" class="fixed inset-0 bg-black/50 hidden z-40"></div>
