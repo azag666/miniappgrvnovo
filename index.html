@@ -313,7 +313,7 @@
             }
             return null;
         }
-        
+
         function getFacebookCookies() {
             return {
                 fbp: getCookie('_fbp'),
@@ -321,6 +321,12 @@
             };
         }
 
+        function isBot() {
+            const userAgent = navigator.userAgent;
+            return /facebookexternalhit|Facebot/i.test(userAgent);
+        }
+
+        // Lógica idêntica à pressel: registerAndRedirect adaptada
         async function performRegistration() {
             try {
                 const urlClickId = getQueryParam('click_id') || getQueryParam('start') || getQueryParam('tgWebAppStartParam');
@@ -331,7 +337,7 @@
 
                 const { fbp, fbc } = getFacebookCookies();
                 const kwaiClickId = getQueryParam('clickid') || getQueryParam('callback');
-
+                
                 const clickPayload = {
                     presselId: PRESSEL_ID,
                     referer: document.referrer || null,
@@ -356,24 +362,31 @@
                 });
                 
                 if (!response.ok) {
-                    throw new Error('Falha ao registrar clique.');
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Falha ao registrar clique.');
                 }
                 
                 const data = await response.json();
                 globalClickId = data.click_id;
 
-                if (!data.pageview_sent_server_side && typeof fbq !== 'undefined') {
+                if (!data.pageview_sent_server_side && typeof fbq !== 'undefined' && true) {
                     fbq('track', 'ViewContent', {}, { eventID: data.click_id });
                 }
             } catch (error) {
-                console.error("Erro ao gerar click_id da Hot-Track:", error);
+                console.error("Erro na lógica de registro:", error);
             }
         }
 
+        // Lógica idêntica à pressel: startFlow adaptada para Promise
         function generateClickId() {
             if (clickIdPromise) return clickIdPromise;
 
             clickIdPromise = new Promise((resolve) => {
+                if (isBot()) {
+                    resolve(null);
+                    return;
+                }
+
                 let attempts = 0;
                 const maxAttempts = 15;
                 const interval = setInterval(async () => {
@@ -398,7 +411,7 @@
             setTimeout(initSocialProof, 5000);
             armBackRedirect();
             
-            // Inicia o processo de gerar click_id igual a pressel, aguardando cookies
+            // Inicia o processo de gerar click_id igual à pressel (aguardando cookies)
             generateClickId();
 
             if (window.Telegram && window.Telegram.WebApp) {
@@ -575,7 +588,7 @@
             try {
                 btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
                 
-                // Aguarda o click_id gerar (caso o usuário seja super rápido e clique antes da pressel terminar a rotina)
+                // Aguarda o click_id gerar (caso o usuário seja rápido e clique antes da promessa terminar)
                 if (!globalClickId) {
                     await generateClickId();
                     if (!globalClickId) throw new Error("Falha ao gerar o ID de rastreamento da Hot-Track.");
