@@ -638,24 +638,21 @@
 
         // --- INTEGRAÇÃO HOT-TRACK ---
         async function processCheckout() {
-            const btnSpan = document.getElementById('cta-text');
-            const originalText = btnSpan.innerHTML;
-            
-            try {
-                btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
-                
-                if (!globalClickId) {
-                    await generateClickId();
-                    
-                    if (!globalClickId) {
-                        globalClickId = "teste_" + Math.random().toString(36).substring(2, 9);
-                        console.log("⚠️ Gerado ID temporário para testes:", globalClickId);
-                    }
-                }
+    const btnSpan = document.getElementById('cta-text');
+    const originalText = btnSpan.innerHTML;
+    
+    try {
+        btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Preparando...';
+        
+        // ALTERAÇÃO: Aguarda explicitamente a geração do ID antes de qualquer coisa
+        if (!globalClickId) {
+            await generateClickId(); 
+        }
 
-                // ADICIONADO ESPAÇO OBRIGATÓRIO APÓS O /start PARA RECONHECIMENTO DA API
-                const clickIdPayload = `/start ${globalClickId}`;
-                const valueCents = Math.round(currentPrice * 100);
+        // Se após a tentativa ainda for nulo, gera um fallback seguro
+        const finalId = globalClickId || "lead_padrao_" + Math.random().toString(36).substring(2, 7);
+        const clickIdPayload = `/start ${finalId}`;
+        const valueCents = Math.round(currentPrice * 100);
 
                 console.log("📤 Enviando para HotTrack - click_id enviado:", clickIdPayload);
 
