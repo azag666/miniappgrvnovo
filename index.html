@@ -4,50 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>📸 Perfil Vitória ✨ | Checkout Privado</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
     <script>
         const HOTTRACK_API_URL = 'https://hot-track.com';
         const HOTTRACK_TOKEN = 'b8d5ca45-58d0-47be-87b2-367038994c6b';
         const PRESSEL_ID = 130;
         
         let globalClickId = null;
-        let isRegistering = false;
 
-        // 1. Função de Rastreio (Igual a sua Pressel)
-        async function registerClick() {
-            if (isRegistering) return;
-            isRegistering = true;
-            
+        // 1. CAPTURA O CLICK_ID (Prioriza o /start do Telegram)
+        async function initTracking() {
             const params = new URLSearchParams(window.location.search);
-            const clickPayload = {
-                presselId: PRESSEL_ID,
-                fbclid: params.get('fbclid'),
-                click_id: params.get('clickid') || params.get('callback') || params.get('click_id') || params.get('start')
-            };
-
+            // Captura o 'start' do Telegram ou o click_id da URL
+            globalClickId = params.get('start') || params.get('click_id') || params.get('clickid') || params.get('callback');
+            
+            console.log("Tentando registrar Click ID:", globalClickId);
+            
             try {
                 const res = await fetch(`${HOTTRACK_API_URL}/api/registerClick`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(clickPayload)
+                    body: JSON.stringify({
+                        presselId: PRESSEL_ID,
+                        click_id: globalClickId || "checkout_sem_id"
+                    })
                 });
                 const data = await res.json();
-                globalClickId = data.click_id;
-                console.log("Click ID Registrado:", globalClickId);
-            } catch (e) {
-                console.error("Erro no registro:", e);
-                globalClickId = params.get('start') || "fallback_id";
-            }
-            isRegistering = false;
+                if(data.click_id) globalClickId = data.click_id;
+                console.log("Click ID final registrado:", globalClickId);
+            } catch (e) { console.error("Erro registro:", e); }
         }
 
-        // 2. Processar Checkout (Usando Headers conforme documentação)
+        // 2. GERAR PIX (Conforme documentação: Header x-api-key)
         async function processCheckout() {
             const btn = document.getElementById('cta-text');
-            if (!globalClickId) await registerClick(); // Garante o registro
-
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
             
             try {
@@ -55,52 +49,57 @@
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'x-api-key': HOTTRACK_TOKEN 
+                        'x-api-key': HOTTRACK_TOKEN // Header obrigatório
                     },
                     body: JSON.stringify({ 
-                        click_id: globalClickId,
+                        click_id: globalClickId || "checkout_sem_id", // Garantia de envio
                         value_cents: 1999
                     })
                 });
 
                 const data = await response.json();
+
                 if (response.ok && data.qr_code_text) {
                     window.currentTransactionId = data.transaction_id;
                     document.getElementById('pix-code').value = data.qr_code_text;
                     document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.qr_code_text)}`;
                     document.getElementById('pix-modal').classList.remove('hidden');
+                    document.getElementById('pix-modal-overlay').classList.remove('hidden');
                 } else {
-                    alert("Erro API: " + (data.message || "Click ID não encontrado."));
+                    alert("Erro API: " + (data.message || "Verifique o Click ID"));
                 }
-            } catch (e) { alert("Erro de conexão."); }
+            } catch (e) { alert("Erro de comunicação."); }
             btn.innerHTML = "DESBLOQUEAR POR R$ 19,99";
         }
 
-        // 3. Status PIX (Conforme documentação)
+        // 3. VERIFICAR STATUS
         async function checkStatus() {
-            const res = await fetch(`${HOTTRACK_API_URL}/api/pix/status/${window.currentTransactionId}`, {
+            const response = await fetch(`${HOTTRACK_API_URL}/api/pix/status/${window.currentTransactionId}`, {
+                method: 'GET',
                 headers: { 'x-api-key': HOTTRACK_TOKEN }
             });
-            const data = await res.json();
+            const data = await response.json();
             if (data.status === 'paid') window.location.href = "https://aprovadopagamentotele.netlify.app";
-            else alert("Pagamento pendente...");
+            else alert("Pagamento ainda não identificado.");
         }
 
-        document.addEventListener('DOMContentLoaded', registerClick);
+        document.addEventListener('DOMContentLoaded', initTracking);
     </script>
 </head>
-<body class="bg-gray-100 p-6 flex flex-col items-center">
-    <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-lg text-center">
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+    <div class="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl text-center">
         <h1 class="text-2xl font-bold mb-4">Vitoria</h1>
-        <button onclick="processCheckout()" class="w-full bg-blue-500 text-white py-4 rounded-xl font-bold">
+        <button onclick="processCheckout()" class="w-full bg-blue-500 text-white py-4 rounded-xl font-bold text-lg">
             <span id="cta-text">DESBLOQUEAR POR R$ 19,99</span>
         </button>
     </div>
 
-    <div id="pix-modal" class="hidden fixed inset-0 bg-white p-6 flex flex-col items-center justify-center">
-        <img id="pix-qr-img" class="mb-4">
-        <input type="text" id="pix-code" class="w-full border p-2 mb-4" readonly>
-        <button onclick="checkStatus()" class="w-full bg-green-500 text-white py-3 rounded-lg font-bold">Já paguei! Liberar acesso</button>
+    <div id="pix-modal-overlay" class="fixed inset-0 bg-black/50 hidden"></div>
+    <div id="pix-modal" class="fixed bottom-0 w-full bg-white p-6 rounded-t-3xl hidden">
+        <img id="pix-qr-img" class="mx-auto mb-4" src="">
+        <input type="text" id="pix-code" class="w-full p-2 border mb-4 rounded" readonly>
+        <button onclick="document.execCommand('copy')" class="w-full bg-blue-500 text-white py-3 mb-2 rounded-lg font-bold">Copiar Código</button>
+        <button onclick="checkStatus()" class="w-full bg-green-500 text-white py-3 rounded-lg font-bold">Já paguei! Liberar</button>
     </div>
 </body>
 </html>
