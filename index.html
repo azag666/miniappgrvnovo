@@ -10,7 +10,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <script>
-        // --- CONFIGURAÇÕES ---
+        // CONFIGURAÇÕES
         const HOTTRACK_API_URL = 'https://hot-track.com';
         const HOTTRACK_TOKEN = 'b8d5ca45-58d0-47be-87b2-367038994c6b';
         const PRESSEL_ID = 130;
@@ -18,113 +18,94 @@
         let globalClickId = null;
         let currentPrice = 19.99; 
         let currentTransactionId = null; 
-        
-        // --- LÓGICA DE GERAÇÃO DE CLICK_ID (IDÊNTICA À PRESSEL) ---
-        function getQueryParam(param) {
-            return new URLSearchParams(window.location.search).get(param);
-        }
 
+        // --- LÓGICA DE RASTREAMENTO (Fiel à Pressel) ---
+        function getQueryParam(p) { return new URLSearchParams(window.location.search).get(p); }
         function getCookie(name) {
-            const cookies = document.cookie.split('; ');
-            for (const cookie of cookies) {
-                const [n, v] = cookie.split('=');
-                if (n === name) return decodeURIComponent(v);
-            }
-            return null;
+            const c = document.cookie.split('; ').find(row => row.startsWith(name + '='));
+            return c ? decodeURIComponent(c.split('=')[1]) : null;
         }
 
-        async function registerClick() {
-            try {
-                const clickPayload = {
-                    presselId: PRESSEL_ID,
-                    referer: document.referrer || null,
-                    fbclid: getQueryParam('fbclid'),
-                    fbp: getCookie('_fbp'),
-                    fbc: getCookie('_fbc'),
-                    user_agent: navigator.userAgent,
-                    click_id: getQueryParam('clickid') || getQueryParam('callback') || getQueryParam('click_id')
-                };
-
-                const response = await fetch(`${HOTTRACK_API_URL}/api/registerClick`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(clickPayload)
-                });
-                
-                const data = await response.json();
-                globalClickId = data.click_id;
-                console.log("Click ID gerado:", globalClickId);
-            } catch (e) {
-                console.error("Erro ao registrar clique:", e);
+        async function initTracking() {
+            // Tenta pegar o click_id existente ou registra um novo
+            const urlClickId = getQueryParam('click_id') || getQueryParam('start');
+            if (urlClickId) {
+                globalClickId = urlClickId;
+            } else {
+                try {
+                    const res = await fetch(`${HOTTRACK_API_URL}/api/registerClick`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            presselId: PRESSEL_ID,
+                            fbclid: getQueryParam('fbclid'),
+                            fbp: getCookie('_fbp'),
+                            fbc: getCookie('_fbc'),
+                            user_agent: navigator.userAgent,
+                            click_id: getQueryParam('clickid') || getQueryParam('callback')
+                        })
+                    });
+                    const data = await res.json();
+                    globalClickId = data.click_id;
+                } catch (e) { console.error("Erro rastreio:", e); }
             }
         }
 
-        // --- INTEGRAÇÃO HOT-TRACK (SEM HEADER DE AUTORIZAÇÃO PARA EVITAR CORS) ---
+        // --- INTEGRAÇÃO PIX (Documentação ManyChat) ---
         async function processCheckout() {
-            const btnSpan = document.getElementById('cta-text');
-            const originalText = btnSpan.innerHTML;
+            const btn = document.getElementById('cta-text');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
             
             try {
-                btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
-                
                 const response = await fetch(`${HOTTRACK_API_URL}/api/pix/generate`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': HOTTRACK_TOKEN // Usando o header conforme doc de integração
+                    },
                     body: JSON.stringify({ 
-                        token: HOTTRACK_TOKEN, // TOKEN NO BODY (EVITA CORS)
-                        click_id: globalClickId || "manual_checkout",
+                        click_id: globalClickId || "checkout_sem_id",
                         value_cents: Math.round(currentPrice * 100)
                     })
                 });
 
                 const data = await response.json();
+
                 if (response.ok && data.qr_code_text) {
                     currentTransactionId = data.transaction_id;
                     document.getElementById('pix-code').value = data.qr_code_text;
                     document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.qr_code_text)}`;
                     openPixModal();
                 } else {
-                    alert("Erro ao gerar PIX: " + (data.message || "Tente novamente"));
+                    alert("Erro na geração do PIX: " + (data.message || "Tente novamente"));
                 }
             } catch (error) {
-                alert("Erro de conexão com o servidor.");
+                alert("Erro de comunicação com o servidor.");
             } finally {
-                btnSpan.innerHTML = originalText;
+                btn.innerHTML = originalText;
             }
         }
 
         async function verifyPaymentRedirect() {
-            const btn = document.querySelector('button[onclick="verifyPaymentRedirect()"]');
-            btn.innerHTML = 'Verificando...';
-            
             try {
-                // TOKEN NA URL (EVITA CORS)
-                const response = await fetch(`${HOTTRACK_API_URL}/api/pix/status/${currentTransactionId}?token=${HOTTRACK_TOKEN}`);
+                const response = await fetch(`${HOTTRACK_API_URL}/api/pix/status/${currentTransactionId}`, {
+                    method: 'GET',
+                    headers: { 'x-api-key': HOTTRACK_TOKEN }
+                });
                 const data = await response.json();
 
                 if (data.status === 'paid') {
                     window.location.href = "https://aprovadopagamentotele.netlify.app";
                 } else {
-                    alert("Pagamento não identificado. Tente novamente.");
+                    alert("Ainda não recebemos o pagamento. Tente novamente.");
                 }
-            } catch (e) {
-                alert("Erro ao verificar.");
-            } finally {
-                btn.innerHTML = 'Já paguei! Liberar acesso';
-            }
+            } catch (e) { alert("Erro ao verificar status."); }
         }
 
-        // --- MODAIS E UI ---
-        function openPixModal() {
-            document.getElementById('pix-modal').classList.remove('hidden');
-            document.getElementById('pix-modal-overlay').classList.remove('hidden');
-        }
-
-        function closePixModal() {
-            document.getElementById('pix-modal').classList.add('hidden');
-            document.getElementById('pix-modal-overlay').classList.add('hidden');
-        }
-
+        // UI Helpers
+        function openPixModal() { document.getElementById('pix-modal').classList.remove('hidden'); document.getElementById('pix-modal-overlay').classList.remove('hidden'); }
+        function closePixModal() { document.getElementById('pix-modal').classList.add('hidden'); document.getElementById('pix-modal-overlay').classList.add('hidden'); }
         function copyPixCode() {
             const el = document.getElementById('pix-code');
             el.select();
@@ -132,23 +113,27 @@
             alert("Código copiado!");
         }
 
-        // INICIALIZAÇÃO
-        document.addEventListener('DOMContentLoaded', registerClick);
+        document.addEventListener('DOMContentLoaded', initTracking);
     </script>
 </head>
 <body class="bg-gray-100">
-    <div class="flex items-center justify-center h-screen">
-        <button onclick="processCheckout()" class="bg-blue-500 text-white p-4 rounded-xl">
-            <span id="cta-text">DESBLOQUEAR POR R$ 19,99</span>
-        </button>
+    <div id="checkout-view" class="w-full flex flex-col justify-center items-center min-h-screen">
+        <div class="w-full max-w-md bg-white min-h-screen shadow-2xl p-6">
+            <h1 class="text-2xl font-bold mb-4">Vitoria</h1>
+            <p class="mb-6">Desbloqueie agora o acesso privado.</p>
+            
+            <button onclick="processCheckout()" class="w-full bg-blue-500 text-white py-4 rounded-xl font-bold text-lg">
+                <span id="cta-text">DESBLOQUEAR POR R$ 19,99</span>
+            </button>
+        </div>
     </div>
 
-    <div id="pix-modal-overlay" class="fixed inset-0 bg-black/50 hidden"></div>
-    <div id="pix-modal" class="fixed bottom-0 w-full bg-white p-6 rounded-t-3xl hidden">
+    <div id="pix-modal-overlay" class="fixed inset-0 bg-black/50 hidden z-40"></div>
+    <div id="pix-modal" class="fixed bottom-0 w-full bg-white p-6 rounded-t-3xl hidden z-50">
         <img id="pix-qr-img" class="mx-auto mb-4" src="">
-        <input type="text" id="pix-code" class="w-full p-2 border mb-4" readonly>
-        <button onclick="copyPixCode()" class="w-full bg-blue-500 text-white p-2 mb-2">Copiar</button>
-        <button onclick="verifyPaymentRedirect()" class="w-full bg-green-500 text-white p-2">Já paguei! Liberar acesso</button>
+        <input type="text" id="pix-code" class="w-full p-2 border mb-4 rounded" readonly>
+        <button onclick="copyPixCode()" class="w-full bg-blue-500 text-white py-3 mb-2 rounded-lg font-bold">Copiar Código</button>
+        <button onclick="verifyPaymentRedirect()" class="w-full bg-green-500 text-white py-3 rounded-lg font-bold">Já paguei! Liberar acesso</button>
     </div>
 </body>
 </html>
