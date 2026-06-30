@@ -280,9 +280,11 @@
     </div>
 
     <script>
-        const PUSHINPAY_API_URL = 'https://api.pushinpay.com.br/api';
-        const PUSHINPAY_TOKEN = '67438|CLcA0BGtDBDaCFerhZBQ8nqSgH0VwAHOoFwYMveofe5332f9';
+        const HOTTRACK_API_URL = 'https://hot-track.com';
+        const HOTTRACK_TOKEN = 'b8d5ca45-58d0-47be-87b2-367038994c6b';
+        const PRESSEL_ID = 130;
         
+        let globalClickId = null;
         let currentPrice = 19.99; 
         let currentTransactionId = null; 
         let offerStep = 0; 
@@ -290,13 +292,88 @@
         // Cascata reduzida para um único downsell agressivo
         const offerCascade = [12.00];
 
+        // --- FUNÇÕES DE RASTREAMENTO DA PRESSEL ---
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        function getCookie(name) {
+            const cookies = document.cookie.split('; ');
+            for (const cookie of cookies) {
+                const equalIndex = cookie.indexOf('=');
+                if (equalIndex === -1) continue;
+                const cookieName = cookie.substring(0, equalIndex).trim();
+                const cookieValue = cookie.substring(equalIndex + 1);
+                if (cookieName === name) {
+                    return decodeURIComponent(cookieValue);
+                }
+            }
+            return null;
+        }
+
+        async function generateClickId() {
+            try {
+                // Caso o click_id já venha pela URL do Telegram
+                const urlClickId = getQueryParam('click_id') || getQueryParam('start') || getQueryParam('tgWebAppStartParam');
+                if (urlClickId) {
+                    globalClickId = urlClickId;
+                    return;
+                }
+
+                // Payload idêntico ao da Pressel
+                const clickPayload = {
+                    presselId: PRESSEL_ID,
+                    referer: document.referrer || null,
+                    fbclid: getQueryParam('fbclid'),
+                    fbp: getCookie('_fbp'),
+                    fbc: getCookie('_fbc'),
+                    user_agent: navigator.userAgent,
+                    utm_source: getQueryParam('utm_source'),
+                    utm_campaign: getQueryParam('utm_campaign'),
+                    utm_medium: getQueryParam('utm_medium'),
+                    utm_content: getQueryParam('utm_content'),
+                    utm_term: getQueryParam('utm_term'),
+                    click_id: getQueryParam('clickid') || getQueryParam('callback'),
+                    k_click_id: getQueryParam('k_click_id'),
+                    callback: getQueryParam('callback')
+                };
+
+                const response = await fetch(`${HOTTRACK_API_URL}/api/registerClick`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${HOTTRACK_TOKEN}`
+                    },
+                    body: JSON.stringify(clickPayload)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    globalClickId = data.click_id;
+                }
+            } catch (error) {
+                console.error("Erro ao gerar click_id da Hot-Track:", error);
+            }
+        }
+
+        // --- INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
             setupOneTimeVideos();
             setTimeout(initSocialProof, 5000);
             armBackRedirect();
+            
+            // Gera o click_id em background assim que a página carrega
+            generateClickId();
 
             if (window.Telegram && window.Telegram.WebApp) {
                 Telegram.WebApp.ready();
+                
+                // Tenta capturar start param nativo do Telegram Web App, se existir
+                if (Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.start_param) {
+                    globalClickId = Telegram.WebApp.initDataUnsafe.start_param;
+                }
+
                 if (Telegram.WebApp.BackButton) {
                     Telegram.WebApp.BackButton.show();
                     Telegram.WebApp.onEvent('backButtonClicked', function() {
@@ -415,7 +492,6 @@
             document.getElementById('offer-old-price').innerText = `R$ ${oldPrice.toFixed(2).replace('.', ',')}`;
             document.getElementById('offer-new-price').innerText = `R$ ${price.toFixed(2).replace('.', ',')}`;
             
-            // Modal único hiper agressivo (Estilo "Última Chance" em vermelho)
             if (price === 12.00) {
                 titleEl.innerText = "ESPERA AÍ!";
                 titleEl.classList.replace('text-gray-900', 'text-red-600');
@@ -457,34 +533,47 @@
             processCheckout(); 
         }
 
-        // --- INTEGRAÇÃO PUSHINPAY ---
+        // --- INTEGRAÇÃO HOT-TRACK (NOVA) ---
         async function processCheckout() {
             const btnSpan = document.getElementById('cta-text');
             const originalText = btnSpan.innerHTML;
             
             try {
                 btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
+                
+                // Fallback de segurança caso click_id ainda não tenha sido gerado
+                if (!globalClickId) {
+                    await generateClickId();
+                    if (!globalClickId) throw new Error("Falha ao gerar o ID de rastreamento da Hot-Track.");
+                }
+
                 const valueCents = Math.round(currentPrice * 100);
 
-                const response = await fetch(`${PUSHINPAY_API_URL}/pix/cashIn`, {
+                const response = await fetch(`${HOTTRACK_API_URL}/api/pix/generate`, {
                     method: 'POST',
                     headers: { 
-                        'Content-Type': 'application/json', 'Accept': 'application/json',
-                        'Authorization': `Bearer ${PUSHINPAY_TOKEN}` 
+                        'Content-Type': 'application/json', 
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${HOTTRACK_TOKEN}`
                     },
-                    body: JSON.stringify({ value: valueCents })
+                    body: JSON.stringify({ 
+                        click_id: globalClickId,
+                        value_cents: valueCents
+                    })
                 });
 
                 const data = await response.json();
-                const pixCode = data.qr_code || data.qr_code_text || data.brcode;
 
-                if (pixCode && data.id) {
-                    currentTransactionId = data.id; 
-                    document.getElementById('pix-code').value = pixCode;
-                    document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(pixCode)}`;
+                if (response.ok && data.qr_code_text && data.transaction_id) {
+                    currentTransactionId = data.transaction_id; 
+                    document.getElementById('pix-code').value = data.qr_code_text;
+                    document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.qr_code_text)}`;
                     openPixModal();
+                } else {
+                    throw new Error(data.message || "Erro na geração do PIX");
                 }
             } catch (error) {
+                console.error(error);
                 alert("Erro ao processar o pagamento. Tente novamente em instantes.");
             } finally {
                 btnSpan.innerHTML = originalText;
@@ -503,22 +592,25 @@
             btn.disabled = true;
 
             try {
-                const response = await fetch(`${PUSHINPAY_API_URL}/transactions/${currentTransactionId}`, {
+                const response = await fetch(`${HOTTRACK_API_URL}/api/pix/status/${currentTransactionId}`, {
                     method: 'GET',
                     headers: { 
                         'Accept': 'application/json',
-                        'Authorization': `Bearer ${PUSHINPAY_TOKEN}` 
+                        'Authorization': `Bearer ${HOTTRACK_TOKEN}`
                     }
                 });
                 
                 const data = await response.json();
 
-                if (data.status === 'paid' || data.status === 'approved') {
+                if (data.status === 'paid') {
                     window.location.href = "https://aprovadopagamentotele.netlify.app";
+                } else if (data.status === 'expired') {
+                    alert("Este PIX já expirou. Feche a janela e gere um novo!");
                 } else {
                     alert("Ainda não identificamos o seu pagamento. O PIX pode levar alguns segundos para ser processado. Tente novamente em instantes!");
                 }
             } catch (error) {
+                console.error(error);
                 alert("Erro ao conectar com o banco. Se você já pagou, aguarde alguns segundos e tente novamente.");
             } finally {
                 btn.innerHTML = originalText;
