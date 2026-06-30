@@ -319,6 +319,7 @@
             return null;
         }
 
+        // Lógica idêntica à pressel adaptada para gerar o ID sem redirecionar a página
         function getFacebookCookies() {
             return {
                 fbp: getCookie('_fbp'),
@@ -331,7 +332,6 @@
             return /facebookexternalhit|Facebot/i.test(userAgent);
         }
 
-        // Lógica idêntica à pressel adaptada para gerar o ID sem redirecionar a página
         async function performRegistration() {
             try {
                 // Prevenção se o Telegram já enviou o start param nativamente
@@ -438,13 +438,15 @@
                     globalClickId = Telegram.WebApp.initDataUnsafe.start_param;
                 }
 
-                if (Telegram.WebApp.BackButton) {
+                if (Telegram.WebApp.BackButton && Telegram.WebApp.isVersionAtLeast && Telegram.WebApp.isVersionAtLeast('6.1')) {
                     Telegram.WebApp.BackButton.show();
                     Telegram.WebApp.onEvent('backButtonClicked', function() {
                         triggerNextOffer();
                     });
                 }
-                Telegram.WebApp.isClosingConfirmationEnabled = true;
+                if (Telegram.WebApp.isVersionAtLeast && Telegram.WebApp.isVersionAtLeast('6.2')) {
+                    Telegram.WebApp.isClosingConfirmationEnabled = true;
+                }
             }
         });
 
@@ -605,15 +607,22 @@
             try {
                 btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gerando PIX...';
                 
-                // Aguarda o click_id gerar (caso o usuário seja rápido e clique antes do polling terminar)
+                // Aguarda o click_id gerar (caso o usuário clique antes de processar o tracking inicial)
                 if (!globalClickId) {
                     await generateClickId();
-                    if (!globalClickId) throw new Error("Falha ao gerar o ID de rastreamento da Hot-Track.");
+                    
+                    // Fallback para ambientes locais ou sem parâmetros
+                    if (!globalClickId) {
+                        globalClickId = "teste_" + Math.random().toString(36).substring(2, 9);
+                        console.log("⚠️ Gerado ID temporário para testes:", globalClickId);
+                    }
                 }
 
                 // Injeta obrigatoriamente o prefixo /start antes do ID capturado
                 const clickIdPayload = `/start${globalClickId}`;
                 const valueCents = Math.round(currentPrice * 100);
+
+                console.log("📤 Enviando para HotTrack - click_id enviado:", clickIdPayload);
 
                 const response = await fetch(`${HOTTRACK_API_URL}/api/pix/generate`, {
                     method: 'POST',
@@ -629,6 +638,7 @@
                 });
 
                 const data = await response.json();
+                console.log("📥 Retorno da API HotTrack:", data);
 
                 if (response.ok && data.qr_code_text && data.transaction_id) {
                     currentTransactionId = data.transaction_id; 
@@ -639,7 +649,7 @@
                     throw new Error(data.message || "Erro na geração do PIX");
                 }
             } catch (error) {
-                console.error(error);
+                console.error("❌ Erro no processCheckout:", error);
                 alert("Erro ao processar o pagamento. Tente novamente em instantes.");
             } finally {
                 btnSpan.innerHTML = originalText;
