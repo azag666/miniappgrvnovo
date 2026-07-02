@@ -22,7 +22,7 @@
     
     <script>
         !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src='https://connect.facebook.net/en_US/fbevents.js';s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script');
-        fbq('init', '26954613457490994');
+        fbq('init', '843968291842685');
         fbq('track', 'PageView');
     </script>
     <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=26954613457490994&ev=PageView&noscript=1"/></noscript>
@@ -202,7 +202,7 @@
             </main>
 
             <div class="absolute bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-up z-40">
-                <button onclick="processCheckout()" class="w-full bg-of-blue hover:bg-of-darkBlue active:scale-[0.98] text-white rounded-2xl py-4 px-4 font-black text-lg transition-all flex items-center justify-center gap-2 btn-pulse shadow-lg">
+                <button onclick="processCheckout()" id="btn-checkout" class="w-full bg-of-blue hover:bg-of-darkBlue disabled:bg-of-gray disabled:opacity-70 active:scale-[0.98] text-white rounded-2xl py-4 px-4 font-black text-lg transition-all flex items-center justify-center gap-2 btn-pulse shadow-lg">
                     <i class="fa-brands fa-pix text-xl mr-1"></i>
                     <span id="cta-text">DESBLOQUEAR POR R$ 19,99</span>
                 </button>
@@ -284,199 +284,26 @@
     <script>
         const HOTTRACK_API_URL = 'https://hot-track.com';
         const HOTTRACK_TOKEN = 'b8d5ca45-58d0-47be-87b2-367038994c6b';
-        const PRESSEL_ID = 130;
-        const BOT_USERNAME = 'vitoriagrvbot'; // Username do seu bot para a API Externa
         
         let globalClickId = null;
-        let clickIdPromise = null; 
         let currentPrice = 19.99; 
         let currentTransactionId = null; 
         let offerStep = 0; 
         
+        let isProcessing = false;
+        
         const offerCascade = [12.00];
-
-        // --- FUNÇÕES DE RASTREAMENTO DA PRESSEL ---
-        function getQueryParam(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
-        }
-
-        function getKwaiClickId() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('clickid') || urlParams.get('callback');
-        }
-
-        function getCookie(name) {
-            const cookies = document.cookie.split('; ');
-            for (const cookie of cookies) {
-                const equalIndex = cookie.indexOf('=');
-                if (equalIndex === -1) continue;
-                const cookieName = cookie.substring(0, equalIndex).trim();
-                const cookieValue = cookie.substring(equalIndex + 1);
-                if (cookieName === name) {
-                    return decodeURIComponent(cookieValue);
-                }
-            }
-            return null;
-        }
-
-        function getFacebookCookies() {
-            return {
-                fbp: getCookie('_fbp'),
-                fbc: getCookie('_fbc')
-            };
-        }
-
-        function isBot() {
-            const userAgent = navigator.userAgent;
-            return /facebookexternalhit|Facebot/i.test(userAgent);
-        }
-
-        // --- NOVA FUNÇÃO: Resolução do Click ID via Telegram initData e API Externa ---
-        async function resolveClickIdFromTelegram() {
-            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
-                try {
-                    console.log("🔍 Tentando recuperar click_id pelo initData do Telegram via API Externa...");
-                    const response = await fetch(`${HOTTRACK_API_URL}/api/miniapp/resolve-click-external`, {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'x-api-key': HOTTRACK_TOKEN
-                        },
-                        body: JSON.stringify({
-                            initData: window.Telegram.WebApp.initData,
-                            botUsername: BOT_USERNAME
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    if (data.valid && data.click_id) {
-                        console.log("✅ [MiniApp] Click ID recuperado com sucesso via initData:", data.click_id);
-                        return data.click_id;
-                    } else {
-                        console.log("⚠️ [MiniApp] Falha ou click_id ausente:", data.error || 'Usuário novo');
-                        return null;
-                    }
-                } catch (e) {
-                    console.error("❌ [MiniApp] Erro ao consultar a rota externa:", e);
-                    return null;
-                }
-            }
-            return null;
-        }
-
-        async function performRegistration() {
-            try {
-                // 1. Tenta recuperar parâmetros explícitos da URL (fluxo normal do bot)
-                let urlClickId = getQueryParam('click_id') || getQueryParam('start') || (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.start_param);
-                if (urlClickId) {
-                    globalClickId = urlClickId;
-                    return;
-                }
-
-                // 2. Tenta recuperar via API de autenticação externa do Telegram WebApp
-                const resolvedTelegramId = await resolveClickIdFromTelegram();
-                if (resolvedTelegramId) {
-                    globalClickId = resolvedTelegramId;
-                    return;
-                }
-
-                // 3. Caso não encontre em nenhum lugar, tenta registrar um novo click
-                const { fbp, fbc } = getFacebookCookies();
-                const kwaiClickId = getKwaiClickId() || getQueryParam('click_id') || getQueryParam('k_click_id');
-                const kwaiCallback = getQueryParam('callback');
-                
-                const clickPayload = {
-                    presselId: PRESSEL_ID,
-                    referer: document.referrer || null,
-                    fbclid: getQueryParam('fbclid'),
-                    fbp: fbp,
-                    fbc: fbc,
-                    user_agent: navigator.userAgent,
-                    utm_source: getQueryParam('utm_source'),
-                    utm_campaign: getQueryParam('utm_campaign'),
-                    utm_medium: getQueryParam('utm_medium'),
-                    utm_content: getQueryParam('utm_content'),
-                    utm_term: getQueryParam('utm_term'),
-                    click_id: kwaiClickId,
-                    k_click_id: getQueryParam('k_click_id'),
-                    callback: kwaiCallback
-                };
-
-                if (kwaiClickId && typeof kwaiq !== 'undefined' && false) {
-                    kwaiq('track', 'ViewContent', {
-                        click_id: kwaiClickId
-                    });
-                    console.log('Evento ViewContent do Kwai disparado com click_id:', kwaiClickId);
-                }
-
-                const response = await fetch(`${HOTTRACK_API_URL}/api/registerClick`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(clickPayload)
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Falha ao registrar clique.');
-                }
-                
-                const data = await response.json();
-                globalClickId = data.click_id;
-
-                if (!data.pageview_sent_server_side && typeof fbq !== 'undefined' && true) {
-                    fbq('track', 'ViewContent', {}, { eventID: data.click_id });
-                    console.log('Evento ViewContent disparado com eventID:', data.click_id);
-                } else if (data.pageview_sent_server_side) {
-                    console.log('Evento PageView já foi enviado pelo servidor. Pulando envio no frontend.');
-                }
-            } catch (error) {
-                console.error("Erro na lógica de registro:", error);
-            }
-        }
-
-        function generateClickId() {
-            if (clickIdPromise) return clickIdPromise;
-
-            clickIdPromise = new Promise((resolve) => {
-                if (isBot()) {
-                    resolve(null);
-                    return;
-                }
-
-                let attempts = 0;
-                const maxAttempts = 15;
-                const interval = setInterval(async () => {
-                    const fbc = getCookie("_fbc");
-                    const fbclid = getQueryParam("fbclid");
-                    
-                    if (fbc || !fbclid || attempts >= maxAttempts) {
-                        clearInterval(interval);
-                        await performRegistration();
-                        resolve(globalClickId);
-                    }
-                    attempts++;
-                }, 200);
-            });
-
-            return clickIdPromise;
-        }
 
         // --- INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
             setupOneTimeVideos();
             setTimeout(initSocialProof, 5000);
             armBackRedirect();
-            
-            generateClickId();
 
             if (window.Telegram && window.Telegram.WebApp) {
                 Telegram.WebApp.ready();
                 
-                if (Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.start_param) {
-                    globalClickId = Telegram.WebApp.initDataUnsafe.start_param;
-                }
+                resolveClickId();
 
                 if (Telegram.WebApp.BackButton && Telegram.WebApp.isVersionAtLeast && Telegram.WebApp.isVersionAtLeast('6.1')) {
                     Telegram.WebApp.BackButton.show();
@@ -490,6 +317,133 @@
             }
         });
 
+        // --- RESOLVER CLICK ID ---
+        async function resolveClickId() {
+            try {
+                const initData = window.Telegram?.WebApp?.initData;
+                if (!initData) {
+                    console.log("⚠️ initData não encontrado.");
+                    return null;
+                }
+
+                console.log("🔍 Resolvendo click_id via API...");
+                const response = await fetch(`${HOTTRACK_API_URL}/api/miniapp/resolve-click`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        initData: initData, 
+                        sellerId: HOTTRACK_TOKEN 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.click_id) {
+                    globalClickId = data.click_id;
+                    console.log("✅ Click ID recuperado com sucesso:", globalClickId);
+                    return globalClickId;
+                } else {
+                    console.log("⚠️ Falha ao recuperar click_id.");
+                    return null;
+                }
+            } catch (e) {
+                console.error("❌ Erro ao consultar resolve-click:", e);
+                return null;
+            }
+        }
+
+        // --- PROCESSAR CHECKOUT (GERAR PIX) ---
+        async function processCheckout() {
+            if (isProcessing) return; 
+            
+            const btnSpan = document.getElementById('cta-text');
+            const originalText = btnSpan ? btnSpan.innerHTML : '';
+            
+            try {
+                isProcessing = true; 
+                if (btnSpan) btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Preparando...';
+                
+                if (!globalClickId) {
+                    await resolveClickId(); 
+                }
+
+                const click_id = globalClickId || "lead_padrao_" + Math.random().toString(36).substring(2, 7);
+                const value_cents = Math.round(currentPrice * 100);
+                const productName = "MiniApp";
+
+                const response = await fetch(`${HOTTRACK_API_URL}/api/pix/generate`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'x-api-key': HOTTRACK_TOKEN
+                    },
+                    body: JSON.stringify({ 
+                        click_id: click_id,
+                        value_cents: value_cents,
+                        product: { name: productName }
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data && data.qr_code_text) {
+                    currentTransactionId = data.transaction_id || data.id || null; 
+                    
+                    document.getElementById('pix-code').value = data.qr_code_text;
+                    document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.qr_code_text)}`;
+                    openPixModal();
+                } else {
+                    throw new Error(data.message || "Falha ao gerar o código PIX");
+                }
+            } catch (error) {
+                console.error("❌ Erro no processCheckout:", error);
+                alert("Erro ao processar o pagamento. Tente novamente em instantes.");
+            } finally {
+                if (btnSpan) btnSpan.innerHTML = originalText;
+                setTimeout(() => { isProcessing = false; }, 1500); 
+            }
+        }
+
+        // --- VERIFICAÇÃO DE PAGAMENTO ---
+        async function verifyPaymentRedirect() {
+            if (!currentTransactionId) {
+                alert("Nenhum PIX foi gerado ainda.");
+                return;
+            }
+
+            const btn = document.querySelector('button[onclick="verifyPaymentRedirect()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i> Verificando Pagamento...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`${HOTTRACK_API_URL}/api/pix/status/${currentTransactionId}`, {
+                    method: 'GET',
+                    headers: { 
+                        'Accept': 'application/json',
+                        'x-api-key': HOTTRACK_TOKEN
+                    }
+                });
+                
+                const data = await response.json();
+
+                if (data.status === 'paid') {
+                    window.location.href = "https://aprovadopagamentotele.netlify.app";
+                } else if (data.status === 'expired') {
+                    alert("Este PIX já expirou. Feche a janela e gere um novo!");
+                } else {
+                    alert("Ainda não identificamos o seu pagamento. O PIX pode levar alguns segundos para ser processado. Tente novamente em instantes!");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Erro ao conectar com o banco. Se você já pagou, aguarde alguns segundos e tente novamente.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // --- UI E INTERAÇÕES ---
         function setupOneTimeVideos() {
             const containers = document.querySelectorAll('.video-container');
             containers.forEach(container => {
@@ -499,6 +453,13 @@
                 let hasPlayed = false;
                 let isLocked = false;
                 
+                const lockContent = () => {
+                    if (typeof video.pause === 'function') video.pause();
+                    video.classList.add('video-locked'); 
+                    lockedOverlay.classList.remove('hidden'); 
+                    isLocked = true;
+                };
+
                 container.addEventListener('click', () => {
                     if (isLocked) {
                         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
@@ -507,16 +468,16 @@
                     if (!hasPlayed) {
                         hasPlayed = true;
                         playOverlay.classList.add('hidden'); 
-                        const playPromise = video.play();
-                        if (playPromise !== undefined) {
-                            playPromise.then(() => {
-                                setTimeout(() => {
-                                    video.pause();
-                                    video.classList.add('video-locked'); 
-                                    lockedOverlay.classList.remove('hidden'); 
-                                    isLocked = true;
-                                }, 3000); 
-                            }).catch(e => console.log("Autoplay evitado"));
+                        
+                        if (typeof video.play === 'function') {
+                            const playPromise = video.play();
+                            if (playPromise !== undefined) {
+                                playPromise.then(() => {
+                                    setTimeout(lockContent, 3000); 
+                                }).catch(e => console.log("Autoplay evitado"));
+                            }
+                        } else {
+                            setTimeout(lockContent, 3000);
                         }
                     }
                 });
@@ -618,7 +579,10 @@
 
             overlay.classList.remove('hidden');
             setTimeout(() => overlay.classList.replace('opacity-0', 'opacity-100'), 10);
-            document.querySelectorAll('.preview-video').forEach(v => v.pause());
+            
+            document.querySelectorAll('.preview-video').forEach(v => {
+                if (typeof v.pause === 'function') v.pause();
+            });
             
             offerStep++;
         }
@@ -636,96 +600,6 @@
             processCheckout(); 
         }
 
-        // --- INTEGRAÇÃO HOT-TRACK ---
-        async function processCheckout() {
-    const btnSpan = document.getElementById('cta-text');
-    const originalText = btnSpan.innerHTML;
-    
-    try {
-        btnSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Preparando...';
-        
-        // ALTERAÇÃO: Aguarda explicitamente a geração do ID antes de qualquer coisa
-        if (!globalClickId) {
-            await generateClickId(); 
-        }
-
-        // Se após a tentativa ainda for nulo, gera um fallback seguro
-        const finalId = globalClickId || "lead_padrao_" + Math.random().toString(36).substring(2, 7);
-        const clickIdPayload = `/start ${finalId}`;
-        const valueCents = Math.round(currentPrice * 100);
-
-                console.log("📤 Enviando para HotTrack - click_id enviado:", clickIdPayload);
-
-                const response = await fetch(`${HOTTRACK_API_URL}/api/pix/generate`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Accept': 'application/json',
-                        'x-api-key': HOTTRACK_TOKEN
-                    },
-                    body: JSON.stringify({ 
-                        click_id: clickIdPayload,
-                        value_cents: valueCents
-                    })
-                });
-
-                const data = await response.json();
-                console.log("📥 Retorno da API HotTrack:", data);
-
-                if (response.ok && data.qr_code_text && data.transaction_id) {
-                    currentTransactionId = data.transaction_id; 
-                    document.getElementById('pix-code').value = data.qr_code_text;
-                    document.getElementById('pix-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.qr_code_text)}`;
-                    openPixModal();
-                } else {
-                    throw new Error(data.message || "Erro na geração do PIX");
-                }
-            } catch (error) {
-                console.error("❌ Erro no processCheckout:", error);
-                alert("Erro ao processar o pagamento. Tente novamente em instantes.");
-            } finally {
-                btnSpan.innerHTML = originalText;
-            }
-        }
-
-        async function verifyPaymentRedirect() {
-            if (!currentTransactionId) {
-                alert("Nenhum PIX foi gerado ainda.");
-                return;
-            }
-
-            const btn = document.querySelector('button[onclick="verifyPaymentRedirect()"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i> Verificando Pagamento...';
-            btn.disabled = true;
-
-            try {
-                const response = await fetch(`${HOTTRACK_API_URL}/api/pix/status/${currentTransactionId}`, {
-                    method: 'GET',
-                    headers: { 
-                        'Accept': 'application/json',
-                        'x-api-key': HOTTRACK_TOKEN
-                    }
-                });
-                
-                const data = await response.json();
-
-                if (data.status === 'paid') {
-                    window.location.href = "https://aprovadopagamentotele.netlify.app";
-                } else if (data.status === 'expired') {
-                    alert("Este PIX já expirou. Feche a janela e gere um novo!");
-                } else {
-                    alert("Ainda não identificamos o seu pagamento. O PIX pode levar alguns segundos para ser processado. Tente novamente em instantes!");
-                }
-            } catch (error) {
-                console.error(error);
-                alert("Erro ao conectar com o banco. Se você já pagou, aguarde alguns segundos e tente novamente.");
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
-
         function openPixModal() {
             const modal = document.getElementById('pix-modal');
             const overlay = document.getElementById('pix-modal-overlay');
@@ -735,7 +609,10 @@
                 overlay.classList.replace('opacity-0', 'opacity-100');
                 modal.classList.add('slide-up');
             }, 10);
-            document.querySelectorAll('.preview-video').forEach(v => v.pause());
+            
+            document.querySelectorAll('.preview-video').forEach(v => {
+                if (typeof v.pause === 'function') v.pause();
+            });
         }
 
         function closePixModal() {
